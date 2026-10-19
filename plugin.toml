@@ -1,0 +1,8 @@
+name = "ganit"
+title = "Calculator"
+description = "Calculator and converter: answers as you type (math, units, currency, percentages) through qalc, with a history."
+version = "0.1.0"
+vyom = "0.2"
+icon = "󰪚"
+color = "peach"
+requires = ["qalc"]
