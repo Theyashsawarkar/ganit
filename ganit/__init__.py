@@ -30,7 +30,7 @@ class Plugin(Base):
     debounce = 120
     width = 680
     height = 430
-    hints = [Hint("↵", "copy answer"), Hint("⌃↵", "copy with expression")]
+    hints = [Hint("Enter", "copy answer"), Hint("Ctrl+Enter", "copy with expression")]
     empty_text = "Type something to calculate"
 
     def opened(self, args):
@@ -50,7 +50,7 @@ class Plugin(Base):
             if ans and ans != q:
                 rows.append(Row(f"<span size='xx-large' weight='bold'>{util_escape(ans)}</span>",
                                 util_escape(q), icon="\U000f0a9a", color="peach", markup=True,
-                                meta="↵ copy", data=("answer", q, ans)))
+                                meta="Enter copy", data=("answer", q, ans)))
                 n = re.fullmatch(r"-?\d+", ans.replace(" ", ""))
                 if n:
                     v = int(ans.replace(" ", ""))
