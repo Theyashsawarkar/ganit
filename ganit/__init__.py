@@ -28,8 +28,6 @@ class Plugin(Base):
     name, title, icon, color = "ganit", "Calculator", "\U000f0a9a", "peach"
     placeholder = "Math, units, currency…   e.g. 100 USD to INR · 18% of 3897 · 5 ft to cm"
     debounce = 120
-    width = 680
-    height = 430
     hints = [Hint("Enter", "copy answer"), Hint("Ctrl+Enter", "copy with expression")]
     empty_text = "Type something to calculate"
 
