@@ -1,0 +1,8 @@
+# The project website (docs/, GitHub Pages): built by scripts/build-site.py
+name = "ganit"
+sanskrit = "गणित"
+meaning = "mathematics"
+tagline = "Calculator and converter: answers as you type (math, units, currency, percentages) through qalc, with a history."
+color = "peach"
+kind = "a Vyom tool"
+logo = "assets/logo.svg"
