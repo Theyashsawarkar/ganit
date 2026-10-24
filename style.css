@@ -1,0 +1,5 @@
+/* ganit. History answers and rates sit on the right: readable, not hint-grey. */
+.plugin-ganit .row-meta { color: @subtext1; font-family: inherit; font-size: 12.5px; }
+/* The preview's own section labels line up with its text. */
+.plugin-ganit .preview .section { padding: 10px 0 0 0; }
+.plugin-ganit .preview .big-number { font-size: 26px; }

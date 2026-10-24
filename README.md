@@ -15,7 +15,7 @@
   <a href="https://github.com/Theyashsawarkar/ganit/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Theyashsawarkar/ganit/actions/workflows/ci.yml/badge.svg"></a>
   <a href="https://github.com/Theyashsawarkar/ganit/releases"><img alt="Release" src="https://img.shields.io/github/v/release/Theyashsawarkar/ganit?color=cba6f7&label=release"></a>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-f5e0dc"></a>
-  <a href="https://github.com/Theyashsawarkar/vyom"><img alt="Vyom 0.2.5+" src="https://img.shields.io/badge/vyom-0.2.5%2B-89b4fa"></a>
+  <a href="https://github.com/Theyashsawarkar/vyom"><img alt="Vyom 0.3+" src="https://img.shields.io/badge/vyom-0.3%2B-89b4fa"></a>
   <img alt="Python 3.11+" src="https://img.shields.io/badge/python-3.11%2B-a6e3a1">
   <img alt="Wayland" src="https://img.shields.io/badge/wayland-layer--shell-94e2d5">
 </p>
@@ -40,18 +40,32 @@ ganit is the calculator and converter for [Vyom](https://github.com/Theyashsawar
 
 ## Features
 
-- **Answers as you type**, through qalc (libqalculate): arithmetic, functions, percentages (`18% of 3897`, `3897 + 18%`), units (`5 ft 11 in to cm`), **currency** (`100 USD to INR`, rates refreshed once a day), dates, bases.
-- Integer answers also show with separators, in hex and in binary.
-- `Enter` copies the answer; `Ctrl+Enter` copies `expression = answer`.
-- A history of the last 50 calculations; Enter on one puts it back in the box to build on.
-- Keyboard first: every action has a key, shown in the footer; the mouse works too.
-- Never freezes the panel: slow commands run in the background.
+**Calculate** (`vyom ganit`):
+
+- **Answers as you type**, through qalc (libqalculate): arithmetic, functions, percentages (`18% of 3897`, `3897 + 18%`), units (`5 ft 11 in to cm`), **currency** (`100 USD to INR`), dates, bases.
+- **One big answer that says how it was read**: "read as (18 × percent) × 3897", so a misread is obvious at once. Digits are grouped and money is rounded to 2 decimals (₹9,494.51).
+- **The other forms in the side pane**: plain (no separators, for pasting), exact (a fraction, qalc's full digits), hex, binary, scientific; `Alt+1..4` copies one.
+- **Half-typed input doesn't jump around**: while the box ends in an operator (`2 +`), the last answer stays, dimmed, "waiting for more…".
+- Opening it shows your recent calculations and examples of what it can do; `Enter` on one puts it in the box.
+- A history of the last 50, with the answers on the right. `Shift+Enter` copies and keeps the panel open.
+
+**Convert** (`vyom ganit convert`, or `Ctrl+L` from Calculate):
+
+<p align="center"><img alt="ganit: the Convert tab" src="assets/screenshots/ganit-convert.png" width="100%"></p>
+
+- **An amount once, every currency you care about**: `100 usd`, `€50`, `2500` (your home currency) shows the amount in each pinned currency, with the rate. Add a name or code to see others (`100 usd cad`, `100 usd franc`).
+- An empty box is a rate board: what one of each pinned currency is worth at home.
+- `Ctrl+P` pins or unpins a currency; `Ctrl+B` makes the selected one the base (100 USD → ₹9,494.51 → convert 9494.51 INR).
+- **Units** the same way: `5 ft`, `30 c`, `10 gb`, `100 kmh` show the related units (length, mass, temperature, volume, data, speed, area, time).
+- **Exchange rates you can trust**: their age is always shown, they update once a day in the background (not again for an hour if offline), and `Ctrl+R` updates them now; rates older than two days get a warning.
+
+Both: keyboard first (every action has a key, shown in the footer and the side pane), and the panel never freezes: qalc runs in the background.
 
 ## Install
 
 ### Requirements
 
-- [Vyom](https://github.com/Theyashsawarkar/vyom) 0.2.5 or newer (Python 3.11+, PyGObject, GTK 4, [gtk4-layer-shell](https://github.com/wmww/gtk4-layer-shell), a Nerd Font)
+- [Vyom](https://github.com/Theyashsawarkar/vyom) 0.3 or newer (Python 3.11+, PyGObject, GTK 4, [gtk4-layer-shell](https://github.com/wmww/gtk4-layer-shell), a Nerd Font)
 - `qalc`
 
 ### Install
@@ -77,20 +91,36 @@ rm -rf ~/.local/share/vyom/plugins/ganit && vyom reload          # uninstall
 
 ## Usage
 
-Open it with `vyom ganit` (or your key). Type to search; the footer always shows the keys for what's selected.
+Open it with `vyom ganit` (or your key), or straight on Convert with `vyom ganit convert`. Type; the footer and the side pane show the keys for what's selected.
 
 | Key | Action |
 |---|---|
-| `Enter` | Copy the answer (on a history line: use it again) |
-| `Ctrl+Enter` | Copy the expression with its answer |
-| `Ctrl+Backspace` | Clear the history |
+| `Enter` | Copy the answer (on a history line or an example: put it in the box) |
+| `Shift+Enter` | Copy the answer and keep the panel open |
+| `Ctrl+Enter` | Copy the answer with its expression |
+| `Alt+1..4` | Copy one of the answer's other forms (plain, exact, hex, binary) |
+| `Ctrl+R` | Update the exchange rates now |
+| `Ctrl+P` | Toggle the selected currency's pin (Convert tab) |
+| `Ctrl+B` | Set the selected currency as the base (Convert tab) |
+| `Ctrl+Backspace` | Clear the history (with an empty box) |
 | `Esc` | Close the panel |
 
-Every Vyom panel also has `Up`/`Down` (or `Ctrl+K`/`Ctrl+J`) to move, `Page Up`/`Page Down` to jump and `Tab` to switch to the next tool.
+Every Vyom panel also has `Up`/`Down` (or `Ctrl+K`/`Ctrl+J`) to move, `Page Up`/`Page Down` to jump, `Tab` to switch to the next tool, and `Ctrl+H`/`Ctrl+L` (or `Ctrl+1..9`) to switch tabs.
+
+### Configuration
+
+`[plugin.ganit]` in `~/.config/vyom/config.toml`, all optional:
+
+| Option | Default | What it does |
+|---|---|---|
+| `home` | `"INR"` | Your currency: a bare number in Convert is in it, and the rate board is priced in it |
+| `currencies` | `["INR", "USD", "EUR", "GBP", "AED", "JPY", "SGD"]` | The pinned currencies, until you pin or unpin one with `Ctrl+P` |
+| `grouping` | `"intl"` | Digit grouping: `"intl"` (1,234,567), `"indian"` (12,34,567) or `"none"` |
 
 ## Troubleshooting
 
 - **Nothing opens.** `vyom list` shows every installed tool, and why one is skipped (a missing requirement, or a Vyom that's too old).
+- **Currency answers are old, or Convert says it has no rate.** qalc keeps the rates in `~/.local/share/qalculate/`; the side pane shows their age. `Ctrl+R` updates them (it needs the network); the footer says whether it worked.
 - **It opened, then something failed.** Look for a `Traceback` in `~/.local/state/vyom/daemon.log`, and [open an issue](https://github.com/Theyashsawarkar/ganit/issues/new/choose) with it.
 - **No blur or rounded corners.** That's the compositor: on SwayFX, add `layer_effects "vyom" { blur enable; corner_radius 20; shadows enable }`.
 

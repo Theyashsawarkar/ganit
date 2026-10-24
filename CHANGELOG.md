@@ -2,6 +2,35 @@
 
 Newest first. Releases are tags (`vX.Y.Z`).
 
+## v0.2.0 -- 2026-10-24
+
+A redesign of the calculator, and a converter.
+
+- **Wrong answers fixed.** `18% of 3897` (the README's own example) gave
+  `rem(18, 1 B)`: qalc reads "of" as a unit, so "X% of Y" is now rewritten
+  to "X% * Y" (701.46). Half-typed input (`2 +`) no longer shows qalc's
+  guess as the answer: the last answer stays, dimmed, "waiting for more…".
+  Money was `₹9492.5546`: digits are grouped and money rounded to 2
+  decimals (₹9,494.51). Exchange rates said nothing about their age and the
+  daily refresh saved its timestamp even when the download failed (they
+  were 3 days old): now their age is shown, a failed update is retried
+  after an hour instead of a day, the footer says how it went, `Ctrl+R`
+  updates them now, and rates older than two days get a warning.
+- **Calculate**: one big answer with how qalc read the input ("read as
+  (18 × percent) × 3897 → INR"), the other forms in a side pane (plain,
+  exact, hex, binary, scientific; `Alt+1..4` copies one) instead of three
+  rows under every whole number, history answers on the right, and recent
+  calculations plus examples when it opens. `Shift+Enter` copies and keeps
+  the panel open.
+- **Convert** (a tab: `vyom ganit convert`, or `Ctrl+L` from Calculate): an
+  amount once (`100 usd`, `€50`, `2500` in your home currency) in every
+  pinned currency with its rate, a rate board when the box is empty, `Ctrl+P`
+  to pin, `Ctrl+B` to make the selected currency the base, and units
+  (`5 ft`, `30 c`, `10 gb`, `100 kmh`). Rates are precise to more than
+  qalc's 4 displayed decimals.
+- Options: `home`, `currencies`, `grouping` (`intl`, `indian`, `none`).
+- Tabs switch like every Vyom tool's (`Ctrl+H` / `Ctrl+L`, `Ctrl+1` / `Ctrl+2`). Needs Vyom 0.3.0.
+
 ## v0.1.4 -- 2026-10-21
 
 - A website (GitHub Pages, https://theyashsawarkar.github.io/ganit/): the README as a home page, the
