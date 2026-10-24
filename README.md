@@ -49,7 +49,7 @@ ganit is the calculator and converter for [Vyom](https://github.com/Theyashsawar
 - Opening it shows your recent calculations and examples of what it can do; `Enter` on one puts it in the box.
 - A history of the last 50, with the answers on the right. `Shift+Enter` copies and keeps the panel open.
 
-**Convert** (`vyom ganit convert`, or `Ctrl+L` from Calculate):
+**Convert** (`vyom ganit convert`, or `Ctrl+Tab` from Calculate):
 
 <p align="center"><img alt="ganit: the Convert tab" src="assets/screenshots/ganit-convert.png" width="100%"></p>
 
@@ -105,7 +105,7 @@ Open it with `vyom ganit` (or your key), or straight on Convert with `vyom ganit
 | `Ctrl+Backspace` | Clear the history (with an empty box) |
 | `Esc` | Close the panel |
 
-Every Vyom panel also has `Up`/`Down` (or `Ctrl+K`/`Ctrl+J`) to move, `Page Up`/`Page Down` to jump, `Tab` to switch to the next tool, and `Ctrl+H`/`Ctrl+L` (or `Ctrl+1..9`) to switch tabs.
+Every Vyom panel also has `Up`/`Down` (or `Ctrl+K`/`Ctrl+J`) to move, `Page Up`/`Page Down` to jump, `Tab`/`Shift+Tab` to switch to the next/previous tool, and `Ctrl+Tab`/`Ctrl+Shift+Tab` (or `Ctrl+H`/`Ctrl+L`) to switch tabs, or `Ctrl` with the number shown on a tab.
 
 ### Configuration
 
