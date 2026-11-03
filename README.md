@@ -6,6 +6,15 @@
   </picture>
 </p>
 
+<!-- identity -->
+<p align="center">
+  <b>यथा शिखा मयूराणां नागानां मणयो यथा ।<br>
+  तद्वद्वेदाङ्गशास्त्राणां गणितं मूर्धनि स्थितम् ॥</b><br>
+  <i>Like the crest of a peacock or the jewel of a serpent, mathematics stands at the head of the Vedāṅga sciences.</i><br>
+  <sub>Vedāṅga Jyotiṣa, Yājuṣa recension 4 (the Ārca recension, v. 35, reads ज्योतिषं for गणितं)</sub>
+</p>
+<!-- /identity -->
+
 <p align="center">
   <b>Calculator and converter: answers as you type (math, units, currency, percentages) through qalc, with a history.</b><br>
   The calculator and converter. A tool for <a href="https://github.com/Theyashsawarkar/vyom">Vyom</a>, keyboard-driven panels for Wayland.

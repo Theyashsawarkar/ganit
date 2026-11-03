@@ -6,3 +6,6 @@ tagline = "Calculator and converter: answers as you type (math, units, currency,
 color = "peach"
 kind = "a Vyom tool"
 logo = "assets/logo.svg"
+shloka = "यथा शिखा मयूराणां नागानां मणयो यथा ।\nतद्वद्वेदाङ्गशास्त्राणां गणितं मूर्धनि स्थितम् ॥"
+shloka_meaning = "Like the crest of a peacock or the jewel of a serpent, mathematics stands at the head of the Vedāṅga sciences."
+shloka_source = "Vedāṅga Jyotiṣa, Yājuṣa recension 4 (the Ārca recension, v. 35, reads ज्योतिषं for गणितं)"
