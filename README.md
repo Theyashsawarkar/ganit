@@ -49,26 +49,27 @@ ganit is the calculator and converter for [Vyom](https://github.com/Theyashsawar
 
 ## Features
 
-**Calculate** (`vyom ganit`):
+**Calculate** (`vyom ganit`): a calculator with a paper tape, that stays open like a real one.
 
-- **Answers as you type**, through qalc (libqalculate): arithmetic, functions, percentages (`18% of 3897`, `3897 + 18%`), units (`5 ft 11 in to cm`), **currency** (`100 USD to INR`), dates, bases.
+- **Answers as you type**, through qalc (libqalculate): arithmetic, functions, percentages (`18% of 3897`, `3897 + 18%`), units (`5 ft 11 in to cm`), **currency** (`100 USD to INR`), dates (`today + 30 days`), bases.
+- **`Enter` keeps the answer on the tape and stays open**: the box clears for the next sum, and `Esc` closes. Start a sum with an operator (`+ 100`, `× 2`) and it carries on from the last answer, like a desk calculator; `ans` is the last answer and `mem` the one saved with `Ctrl+M`.
+- **A tape you can go back through**: the last 300 sums, grouped by day and kept between sessions. `Up`/`Down` walk it, `Ctrl+C` copies a line's answer, and `Enter` (or a double-click) puts it back in the box.
 - **One big answer that says how it was read**: "read as (18 × percent) × 3897", so a misread is obvious at once. Digits are grouped and money is rounded to 2 decimals (₹9,494.51).
-- **The other forms in the side pane**: plain (no separators, for pasting), exact (a fraction, qalc's full digits), hex, binary, scientific; `Alt+1..4` copies one.
+- **The other forms beside it**: plain (for pasting), exact (a fraction, qalc's full digits), hex, binary; `Alt+1..4` copies one.
+- **A keypad you can click**, while the keyboard keeps working: the focus never leaves the box.
 - **Half-typed input doesn't jump around**: while the box ends in an operator (`2 +`), the last answer stays, dimmed, "waiting for more…".
-- Opening it shows your recent calculations and examples of what it can do; `Enter` on one puts it in the box.
-- A history of the last 50, with the answers on the right. `Shift+Enter` copies and keeps the panel open.
 
-**Convert** (`vyom ganit convert`, or `Ctrl+Tab` from Calculate):
+**Convert** (`vyom ganit convert`, or `Tab` from Calculate): a two-sided converter.
 
 <p align="center"><img alt="ganit: the Convert tab" src="assets/screenshots/ganit-convert.png" width="100%"></p>
 
-- **An amount once, every currency you care about**: `100 usd`, `€50`, `2500` (your home currency) shows the amount in each pinned currency, with the rate. Add a name or code to see others (`100 usd cad`, `100 usd franc`).
-- An empty box is a rate board: what one of each pinned currency is worth at home.
-- `Ctrl+P` pins or unpins a currency; `Ctrl+B` makes the selected one the base (100 USD → ₹9,494.51 → convert 9494.51 INR).
-- **Units** the same way: `5 ft`, `30 c`, `10 gb`, `100 kmh` show the related units (length, mass, temperature, volume, data, speed, area, time).
-- **Exchange rates you can trust**: their age is always shown, they update once a day in the background (not again for an hour if offline), and `Ctrl+R` updates them now; rates older than two days get a warning.
+- **From and To, side by side**: type in either (`Up`/`Down` moves between them) and the other follows; `Alt+Up`/`Alt+Down` changes that side's unit and `Ctrl+S` swaps them.
+- **Every kind has its own colour**: currency, length, mass, temperature, volume, data, speed, area, time; `Alt+1..9` switches.
+- **The rest at a glance**: the same amount in every other unit, or every pinned currency (`Ctrl+P` pins or unpins one); click one to make it the target.
+- **`Enter` saves the conversion** to a list under it (and to the calculator's tape); the panel stays open.
+- **Exchange rates you can trust**: their age is always shown, and turns yellow past two days. They update once a day in the background (not again for an hour if offline), and `Ctrl+R` updates them now.
 
-Both: keyboard first (every action has a key, shown in the footer and the side pane), and the panel never freezes: qalc runs in the background.
+Both: keyboard first (every action has a key, shown in the footer), `F11` makes it fullscreen, and the panel never freezes: qalc runs in the background.
 
 ## Install
 
@@ -100,21 +101,27 @@ rm -rf ~/.local/share/vyom/plugins/ganit && vyom reload          # uninstall
 
 ## Usage
 
-Open it with `vyom ganit` (or your key), or straight on Convert with `vyom ganit convert`. Type; the footer and the side pane show the keys for what's selected.
+Open it with `vyom ganit` (or your key), or straight on Convert with `vyom ganit convert`. Type; the footer shows the keys. `Enter` never closes it: it keeps the answer, and `Esc` closes.
 
 | Key | Action |
 |---|---|
-| `Enter` | Copy the answer (on a history line or an example: put it in the box) |
-| `Shift+Enter` | Copy the answer and keep the panel open |
+| `Enter` | Calculate: run the sum and keep its answer on the tape (the panel stays open). Convert: save the conversion |
 | `Ctrl+Enter` | Copy the answer with its expression |
+| `Up / Down` | Calculate: move along the tape. Convert: move between the From and To amounts |
+| `Ctrl+C` | Copy the answer (the picked tape line's), or the converted amount |
+| `Ctrl+M` | Save the answer to memory (`mem` in a sum uses it) |
+| `Ctrl+L` | Clear the tape (press it twice) |
 | `Alt+1..4` | Copy one of the answer's other forms (plain, exact, hex, binary) |
+| `Alt+Up / Alt+Down` | Switch the unit of the side you're typing in (Convert) |
+| `Alt+1..9` | Switch the kind: currency, length, mass, temperature… (Convert) |
+| `Ctrl+S` | Swap From and To (Convert) |
+| `Ctrl+P` | Toggle the target currency's pin (Convert) |
 | `Ctrl+R` | Update the exchange rates now |
-| `Ctrl+P` | Toggle the selected currency's pin (Convert tab) |
-| `Ctrl+B` | Set the selected currency as the base (Convert tab) |
-| `Ctrl+Backspace` | Clear the history (with an empty box) |
+| `Tab` / `Shift+Tab` | Switch between Calculate and Convert |
+| `F11` | Toggle fullscreen |
 | `Esc` | Close the panel |
 
-Every Vyom panel also has `Up`/`Down` (or `Ctrl+K`/`Ctrl+J`) to move, `Page Up`/`Page Down` to jump, `Tab`/`Shift+Tab` to switch to the next/previous tool, and `Ctrl+Tab`/`Ctrl+Shift+Tab` (or `Ctrl+H`/`Ctrl+L`) to switch tabs, or `Ctrl` with the number shown on a tab.
+Every Vyom panel also has `Up`/`Down` (or `Ctrl+K`/`Ctrl+J`) to move and `Page Up`/`Page Down` to jump; its tabs, its main kinds, switch with `Tab`/`Shift+Tab` (or `Ctrl+H`/`Ctrl+L`), or `Ctrl` with the number shown on a tab.
 
 ### Configuration
 
@@ -122,14 +129,14 @@ Every Vyom panel also has `Up`/`Down` (or `Ctrl+K`/`Ctrl+J`) to move, `Page Up`/
 
 | Option | Default | What it does |
 |---|---|---|
-| `home` | `"INR"` | Your currency: a bare number in Convert is in it, and the rate board is priced in it |
+| `home` | `"INR"` | Your currency: Convert starts from USD to it |
 | `currencies` | `["INR", "USD", "EUR", "GBP", "AED", "JPY", "SGD"]` | The pinned currencies, until you pin or unpin one with `Ctrl+P` |
 | `grouping` | `"intl"` | Digit grouping: `"intl"` (1,234,567), `"indian"` (12,34,567) or `"none"` |
 
 ## Troubleshooting
 
 - **Nothing opens.** `vyom list` shows every installed tool, and why one is skipped (a missing requirement, or a Vyom that's too old).
-- **Currency answers are old, or Convert says it has no rate.** qalc keeps the rates in `~/.local/share/qalculate/`; the side pane shows their age. `Ctrl+R` updates them (it needs the network); the footer says whether it worked.
+- **Currency answers are old, or Convert says it has no rate.** qalc keeps the rates in `~/.local/share/qalculate/`; the rate line in Convert shows their age. `Ctrl+R` updates them (it needs the network); the footer says whether it worked.
 - **It opened, then something failed.** Look for a `Traceback` in the daemon's log, `journalctl --user -u vyom -u vyom-daemon -b` (without systemd: `~/.local/state/vyom/daemon.log`), and [open an issue](https://github.com/Theyashsawarkar/ganit/issues/new/choose) with it.
 - **No blur or rounded corners.** That's the compositor: on SwayFX, add `layer_effects "vyom" { blur enable; corner_radius 20; shadows enable }`.
 

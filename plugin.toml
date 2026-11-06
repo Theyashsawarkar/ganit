@@ -1,8 +1,8 @@
 name = "ganit"
 title = "Calculator"
-description = "Calculator and converter: answers as you type (math, units, currency, percentages) through qalc, and a Convert tab for every currency and unit at once."
-version = "0.2.0"
-vyom = "0.3.0"
+description = "Calculator and converter that stay open: answers as you type through qalc (math, units, currency, percentages, dates), a paper tape of every sum, and a two-sided converter for every currency and unit."
+version = "0.3.0"
+vyom = "0.5.0"
 icon = "󰪚"
 color = "peach"
 requires = ["qalc"]

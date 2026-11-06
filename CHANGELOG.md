@@ -2,8 +2,28 @@
 
 Newest first. Releases are tags (`vX.Y.Z`).
 
-## Unreleased
+## v0.3.0 -- 2026-11-06
 
+A calculator and converter that behave like the real thing.
+
+- **`Enter` no longer closes it.** In Calculate it runs the sum and keeps the
+  answer on a paper tape; the box clears for the next one and `Esc` closes.
+  A sum that starts with an operator (`+ 100`, `× 2`) carries on from the
+  last answer; `ans` and `mem` (`Ctrl+M`) can go anywhere in a sum.
+- **A tape kept between sessions**: the last 300 sums, by day. `Up`/`Down`
+  walk it, `Ctrl+C` copies a line, `Enter` or a double-click recalls it,
+  `Ctrl+L` twice clears it.
+- **A new look**: one big peach answer with how it was read, the answer's
+  other forms (`Alt+1..4`), a clickable keypad and the memory beside it.
+- **Convert is two-sided**: From and To amounts (type in either; `Up`/`Down`
+  moves between them, `Alt+Up`/`Alt+Down` changes the unit, `Ctrl+S`
+  swaps), nine kinds each with its own colour (`Alt+1..9`), the amount in
+  every other unit or pinned currency below, and `Enter` saves the
+  conversion to a list (the next amount you type replaces the old one).
+  Converted amounts are grouped like the rest (7,044.19). The rates' age
+  turns yellow past two days.
+- `Tab` switches between Calculate and Convert, and `F11` toggles fullscreen
+  (Vyom 0.5.0). Gone: `Shift+Enter`, `Ctrl+B` and `Ctrl+Backspace`.
 - Every corner is rounded: the website's callouts.
 - A logo and a shloka at the top of the README and the website: every Vayu tool has them now.
 

@@ -1,5 +1,97 @@
-/* ganit. History answers and rates sit on the right: readable, not hint-grey. */
-.plugin-ganit .row-meta { color: @subtext1; font-family: inherit; font-size: 12.5px; }
-/* The preview's own section labels line up with its text. */
-.plugin-ganit .preview .section { padding: 10px 0 0 0; }
-.plugin-ganit .preview .big-number { font-size: 26px; }
+/* ganit: a calculator with a paper tape, and a two-sided converter. Peach is
+   the calculator's colour; each converter kind has its own (one meaning each). */
+.plugin-ganit .g-card { padding: 0; }
+.plugin-ganit .g-left { padding: 14px 16px 12px; }
+.plugin-ganit .g-right { padding: 14px 16px 12px; min-width: 300px;
+  border-left: 1px solid alpha(white, 0.06); }
+.plugin-ganit .g-head { font-size: 11px; font-weight: 600; color: @overlay1; letter-spacing: 1px; }
+.plugin-ganit .g-head-note { font-size: 11.5px; color: @overlay0; }
+.plugin-ganit .g-empty { color: @overlay0; font-size: 12.5px; padding: 8px 4px; }
+
+/* ---- the tape ---- */
+.plugin-ganit .g-day { font-size: 11px; font-weight: 600; color: @overlay0; letter-spacing: 0.8px;
+  padding: 10px 8px 2px; }
+.plugin-ganit .g-line { padding: 5px 10px; border-radius: 12px; border: 1px solid transparent; }
+.plugin-ganit .g-line:hover { background: alpha(white, 0.035); }
+.plugin-ganit .g-line.g-sel { border-color: alpha(@peach, 0.7); background: alpha(@peach, 0.09); }
+.plugin-ganit .g-n { font-family: "JetBrainsMono Nerd Font"; font-size: 11px; color: @overlay0; }
+.plugin-ganit .g-expr { font-family: "JetBrainsMono Nerd Font"; font-size: 13.5px; color: @subtext0; }
+.plugin-ganit .g-ans-v { font-family: "JetBrainsMono Nerd Font"; font-size: 15px; font-weight: 700; color: @text; }
+
+/* ---- the display ---- */
+.plugin-ganit .g-display { border-radius: 16px; padding: 10px 16px 10px;
+  background: alpha(@crust, 0.6); border: 1px solid alpha(@peach, 0.5);
+  box-shadow: 0 0 12px alpha(@peach, 0.18); }
+.plugin-ganit .g-eq { font-family: "JetBrainsMono Nerd Font"; font-size: 18px; color: @overlay1; }
+.plugin-ganit .g-big { font-family: "JetBrainsMono Nerd Font"; font-size: 32px; font-weight: 700; color: @peach; }
+.plugin-ganit .g-big.g-dim { color: @overlay0; }
+.plugin-ganit .g-big.g-err { font-size: 16px; font-weight: 500; color: @red; }
+.plugin-ganit .g-read { font-size: 12px; color: @overlay1; }
+.plugin-ganit .g-inrow { border-top: 1px solid alpha(white, 0.06); padding-top: 8px; margin-top: 4px; }
+.plugin-ganit .g-ans { font-family: "JetBrainsMono Nerd Font"; font-size: 12px; font-weight: 700;
+  color: @crust; background: @peach; border-radius: 7px; padding: 1px 8px; }
+.plugin-ganit entry.g-input, .plugin-ganit .g-input { background: none; border: none; box-shadow: none; outline: none;
+  font-family: "JetBrainsMono Nerd Font"; font-size: 17px; color: @text; caret-color: @peach; min-height: 30px; padding: 0; }
+
+/* ---- side cards, keypad ---- */
+.plugin-ganit .g-box { border-radius: 14px; padding: 10px 12px; background: alpha(white, 0.035);
+  border: 1px solid alpha(white, 0.06); }
+.plugin-ganit .g-k { font-family: "JetBrainsMono Nerd Font"; font-size: 11.5px; color: @overlay1; }
+.plugin-ganit .g-v { font-family: "JetBrainsMono Nerd Font"; font-size: 12.5px; color: @text; }
+.plugin-ganit .g-mid { font-family: "JetBrainsMono Nerd Font"; font-size: 20px; font-weight: 700; color: @text; }
+.plugin-ganit button.g-pad { min-height: 34px; border-radius: 11px; padding: 0;
+  background: alpha(white, 0.04); border: 1px solid alpha(white, 0.07); box-shadow: none;
+  font-family: "JetBrainsMono Nerd Font"; font-size: 14px; font-weight: 600; color: @text; }
+.plugin-ganit button.g-pad:hover { background: alpha(white, 0.09); }
+.plugin-ganit button.g-pad:active { background: alpha(@peach, 0.25); }
+.plugin-ganit button.g-pad-op { color: @peach; }
+.plugin-ganit button.g-pad-fn { color: @sky; font-size: 12.5px; }
+.plugin-ganit button.g-pad-clear { color: @red; }
+.plugin-ganit button.g-pad-eq { background: @peach; color: @crust; border-color: @peach; }
+
+/* ---- footer ---- */
+.plugin-ganit .g-foot { padding: 9px 16px; border-top: 1px solid alpha(white, 0.06); }
+.plugin-ganit .g-mode { font-family: "JetBrainsMono Nerd Font"; font-size: 11px; font-weight: 700;
+  color: @crust; background: @peach; border-radius: 7px; padding: 1px 9px; }
+.plugin-ganit .g-status { font-size: 12px; }
+.plugin-ganit .g-status.g-ok { color: @green; }
+.plugin-ganit .g-status.g-bad { color: @yellow; }
+
+/* ---- converter ---- */
+.plugin-ganit button.g-kind { padding: 4px 11px; border-radius: 11px; background: alpha(white, 0.03);
+  border: 1px solid alpha(white, 0.07); box-shadow: none; color: @subtext0; font-weight: 600; font-size: 12.5px; }
+.plugin-ganit button.g-kind .g-num { font-family: "JetBrainsMono Nerd Font"; font-size: 10px; opacity: 0.5; }
+.plugin-ganit button.g-kind.g-on.c-peach { color: @peach; border-color: alpha(@peach, 0.7); background: alpha(@peach, 0.12); }
+.plugin-ganit button.g-kind.g-on.c-teal { color: @teal; border-color: alpha(@teal, 0.7); background: alpha(@teal, 0.12); }
+.plugin-ganit button.g-kind.g-on.c-green { color: @green; border-color: alpha(@green, 0.7); background: alpha(@green, 0.12); }
+.plugin-ganit button.g-kind.g-on.c-red { color: @red; border-color: alpha(@red, 0.7); background: alpha(@red, 0.12); }
+.plugin-ganit button.g-kind.g-on.c-sky { color: @sky; border-color: alpha(@sky, 0.7); background: alpha(@sky, 0.12); }
+.plugin-ganit button.g-kind.g-on.c-blue { color: @blue; border-color: alpha(@blue, 0.7); background: alpha(@blue, 0.12); }
+.plugin-ganit button.g-kind.g-on.c-yellow { color: @yellow; border-color: alpha(@yellow, 0.7); background: alpha(@yellow, 0.12); }
+.plugin-ganit button.g-kind.g-on.c-lavender { color: @lavender; border-color: alpha(@lavender, 0.7); background: alpha(@lavender, 0.12); }
+.plugin-ganit button.g-kind.g-on.c-pink { color: @pink; border-color: alpha(@pink, 0.7); background: alpha(@pink, 0.12); }
+.plugin-ganit .g-side { border-radius: 16px; padding: 10px 14px 12px; background: alpha(@crust, 0.6);
+  border: 1px solid alpha(white, 0.08); }
+.plugin-ganit .g-side.g-focus { border-color: alpha(@peach, 0.75); box-shadow: 0 0 12px alpha(@peach, 0.2); }
+.plugin-ganit .g-kind-teal .g-side.g-focus { border-color: alpha(@teal, 0.75); }
+.plugin-ganit .g-kind-green .g-side.g-focus { border-color: alpha(@green, 0.75); }
+.plugin-ganit .g-kind-red .g-side.g-focus { border-color: alpha(@red, 0.75); }
+.plugin-ganit .g-kind-sky .g-side.g-focus { border-color: alpha(@sky, 0.75); }
+.plugin-ganit .g-kind-blue .g-side.g-focus { border-color: alpha(@blue, 0.75); }
+.plugin-ganit .g-kind-yellow .g-side.g-focus { border-color: alpha(@yellow, 0.75); }
+.plugin-ganit .g-kind-lavender .g-side.g-focus { border-color: alpha(@lavender, 0.75); }
+.plugin-ganit .g-kind-pink .g-side.g-focus { border-color: alpha(@pink, 0.75); }
+.plugin-ganit entry.g-amount, .plugin-ganit .g-amount { background: none; border: none; box-shadow: none; outline: none;
+  font-family: "JetBrainsMono Nerd Font"; font-size: 26px; font-weight: 700; color: @text; padding: 0; min-height: 38px; }
+.plugin-ganit .g-side dropdown button { border-radius: 10px; }
+.plugin-ganit .g-swap { min-width: 40px; min-height: 40px; border-radius: 20px; padding: 0;
+  font-family: "JetBrainsMono Nerd Font"; font-size: 17px; }
+.plugin-ganit .g-rate { font-family: "JetBrainsMono Nerd Font"; font-size: 12.5px; color: @subtext0; padding: 0 4px; }
+.plugin-ganit .g-rate.g-old { color: @yellow; }
+.plugin-ganit .g-cell { border-radius: 13px; padding: 8px 12px; background: alpha(white, 0.035);
+  border: 1px solid alpha(white, 0.06); }
+.plugin-ganit .g-cell:hover { background: alpha(white, 0.07); }
+.plugin-ganit .g-cell.g-cell-to { border-color: alpha(@peach, 0.7); background: alpha(@peach, 0.08); }
+.plugin-ganit .g-cell-v { font-family: "JetBrainsMono Nerd Font"; font-size: 15px; font-weight: 700; color: @text; }
+.plugin-ganit .g-cell-k { font-size: 11.5px; color: @overlay1; }
+.plugin-ganit .g-saved { padding: 4px 2px; border-bottom: 1px dashed alpha(white, 0.06); }
