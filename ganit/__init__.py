@@ -593,19 +593,17 @@ class Plugin(Base):
         while (c := box.get_first_child()) is not None:
             box.remove(c)
         items = self.tape_items()
-        last_day, n = None, 0
+        last_day = None
         self.tape_rows = {}
         for i, h in enumerate(items):
             day = day_label(h.get("t"))
             if day != last_day:
                 box.append(lbl(day.upper(), "g-day"))
                 last_day = day
-            n += 1
             line = Gtk.Box(spacing=10)
             line.add_css_class("g-line")
             if i == self.sel:
                 line.add_css_class("g-sel")
-            line.append(lbl(str(n), "g-n", xalign=1, width_chars=3))
             line.append(lbl(h["expr"], "g-expr", hexpand=True, ellipsize=Pango.EllipsizeMode.END))
             line.append(lbl(h["ans"], "g-ans-v", xalign=1))
             click = Gtk.GestureClick()
@@ -615,6 +613,7 @@ class Plugin(Base):
             box.append(line)
         if not items:
             box.append(lbl("Your sums stay here, like a calculator's paper tape.", "g-empty"))
+        n = len(items)
         self.tape_count.set_text(f"{n} line{'s' if n != 1 else ''} · kept" if n else "")
         GLib.idle_add(self.scroll_tape)
 
@@ -950,7 +949,7 @@ class Plugin(Base):
             box = Gtk.Box(spacing=6)
             box.append(lbl(KIND_ICON[k], "glyph"))
             box.append(lbl(k.capitalize()))
-            box.append(lbl(str(i), "g-num"))
+            b_.set_tooltip_text(f"{k.capitalize()} (Alt+{i})")
             b_.set_child(box)
             b_.add_css_class("g-kind")
             b_.add_css_class(f"c-{KIND_COLOR[k]}")

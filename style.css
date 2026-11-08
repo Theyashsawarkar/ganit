@@ -14,7 +14,6 @@
 .plugin-ganit .g-line { padding: 5px 10px; border-radius: 12px; border: 1px solid transparent; }
 .plugin-ganit .g-line:hover { background: alpha(white, 0.035); }
 .plugin-ganit .g-line.g-sel { border-color: alpha(@peach, 0.7); background: alpha(@peach, 0.09); }
-.plugin-ganit .g-n { font-family: "JetBrainsMono Nerd Font"; font-size: 11px; color: @overlay0; }
 .plugin-ganit .g-expr { font-family: "JetBrainsMono Nerd Font"; font-size: 13.5px; color: @subtext0; }
 .plugin-ganit .g-ans-v { font-family: "JetBrainsMono Nerd Font"; font-size: 15px; font-weight: 700; color: @text; }
 
@@ -60,7 +59,6 @@
 /* ---- converter ---- */
 .plugin-ganit button.g-kind { padding: 4px 11px; border-radius: 11px; background: alpha(white, 0.03);
   border: 1px solid alpha(white, 0.07); box-shadow: none; color: @subtext0; font-weight: 600; font-size: 12.5px; }
-.plugin-ganit button.g-kind .g-num { font-family: "JetBrainsMono Nerd Font"; font-size: 10px; opacity: 0.5; }
 .plugin-ganit button.g-kind.g-on.c-peach { color: @peach; border-color: alpha(@peach, 0.7); background: alpha(@peach, 0.12); }
 .plugin-ganit button.g-kind.g-on.c-teal { color: @teal; border-color: alpha(@teal, 0.7); background: alpha(@teal, 0.12); }
 .plugin-ganit button.g-kind.g-on.c-green { color: @green; border-color: alpha(@green, 0.7); background: alpha(@green, 0.12); }

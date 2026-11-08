@@ -2,6 +2,11 @@
 
 Newest first. Releases are tags (`vX.Y.Z`).
 
+## v0.3.1 -- 2026-11-08
+
+- No numbers on the tape's lines or on the converter's kind buttons (each kind's tooltip
+  has its `Alt` key).
+
 ## v0.3.0 -- 2026-11-06
 
 A calculator and converter that behave like the real thing.
