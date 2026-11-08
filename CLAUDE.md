@@ -3,7 +3,7 @@
 A Vyom tool (the calculator and converter), in its own repo per Vayu's plugin rule (github.com/Theyashsawarkar/vayu, CLAUDE.md "Plugins"). It must work on any layer-shell compositor without Vayu; Vayu-specific behaviour only through `[plugin.ganit]` in ~/.config/vyom/config.toml.
 
 - `plugin.toml` names it, its version and the tools it `requires`; `ganit/__init__.py` holds the `Plugin` class (API: vyom/plugin.py in the Vyom repo: search() runs in a worker thread and must not touch widgets; everything else is on the GTK main loop; slow work goes through self.background()).
-- Every key has a `# keybind: Vyom/<scope> | <keys> | <Verb> ...` line (Vayu's keybinding search and this README's key table read them).
+- Keys are vim's and live in one table, `ganit/vim.py` (ADR 0005). After changing it run `python3 scripts/keybinds.py`: it writes the `# keybind:` lines (Vayu's keybinding search reads them) and README's key tables; CI runs it with `--check`.
 - Detect, don't assume: no tool or hardware means a clear row or `available()` returning why, never a crash.
 - Every change: a CHANGELOG.md entry; releases are tags with `version` in plugin.toml bumped.
 - Test live without touching the user's screen: `kosha link ganit <checkout>`, then a headless sway (WLR_BACKENDS=headless) with its own D-Bus session (`dbus-run-session`) running `vyom daemon` and `vyom ganit`, `grim` for screenshots, `wtype -s 250` for keys. Never restart the user's own Vyom to test. Logs: `journalctl --user -u vyom -b` (on the real desktop) or the headless daemon's stderr.

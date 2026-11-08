@@ -1,7 +1,7 @@
 name = "ganit"
 title = "Calculator"
 description = "Calculator and converter that stay open: answers as you type through qalc (math, units, currency, percentages, dates), a paper tape of every sum, and a two-sided converter for every currency and unit."
-version = "0.3.1"
+version = "0.4.0"
 vyom = "0.6.3"
 icon = "󰪚"
 color = "peach"

@@ -52,24 +52,24 @@ ganit is the calculator and converter for [Vyom](https://github.com/Theyashsawar
 **Calculate** (`vyom ganit`): a calculator with a paper tape, that stays open like a real one.
 
 - **Answers as you type**, through qalc (libqalculate): arithmetic, functions, percentages (`18% of 3897`, `3897 + 18%`), units (`5 ft 11 in to cm`), **currency** (`100 USD to INR`), dates (`today + 30 days`), bases.
-- **`Enter` keeps the answer on the tape and stays open**: the box clears for the next sum, and `Esc` closes. Start a sum with an operator (`+ 100`, `× 2`) and it carries on from the last answer, like a desk calculator; `ans` is the last answer and `mem` the one saved with `Ctrl+M`.
-- **A tape you can go back through**: the last 300 sums, grouped by day and kept between sessions. `Up`/`Down` walk it, `Ctrl+C` copies a line's answer, and `Enter` (or a double-click) puts it back in the box.
+- **`Enter` keeps the answer on the tape and stays open**: the box clears for the next sum, and `Esc` closes. Start a sum with an operator (`+ 100`, `× 2`) and it carries on from the last answer, like a desk calculator; `ans` is the last answer and `mem` the one saved with `m`.
+- **A tape you can go back through**: the last 300 sums, grouped by day and kept between sessions. In normal mode `j`/`k` walk it, `yy` copies a line's answer, `dd` deletes one (`u` brings it back), and `Enter` (or a double-click) puts it back in the box.
 - **One big answer that says how it was read**: "read as (18 × percent) × 3897", so a misread is obvious at once. Digits are grouped and money is rounded to 2 decimals (₹9,494.51).
-- **The other forms beside it**: plain (for pasting), exact (a fraction, qalc's full digits), hex, binary; `Alt+1..4` copies one.
+- **The other forms beside it**: plain (for pasting), exact (a fraction, qalc's full digits), hex, binary; `Space y p`/`x`/`h`/`b` copies one.
 - **A keypad you can click**, while the keyboard keeps working: the focus never leaves the box.
 - **Half-typed input doesn't jump around**: while the box ends in an operator (`2 +`), the last answer stays, dimmed, "waiting for more…".
 
-**Convert** (`vyom ganit convert`, or `Tab` from Calculate): a two-sided converter.
+**Convert** (`vyom ganit convert`, or `gt` from Calculate): a two-sided converter.
 
 <p align="center"><img alt="ganit: the Convert tab" src="assets/screenshots/ganit-convert.png" width="100%"></p>
 
-- **From and To, side by side**: type in either (`Up`/`Down` moves between them) and the other follows; `Alt+Up`/`Alt+Down` changes that side's unit and `Ctrl+S` swaps them.
-- **Every kind has its own colour**: currency, length, mass, temperature, volume, data, speed, area, time; `Alt+1..9` switches.
-- **The rest at a glance**: the same amount in every other unit, or every pinned currency (`Ctrl+P` pins or unpins one); click one to make it the target.
+- **From and To, side by side**: type in either (`j`/`k` moves between them) and the other follows; `h`/`l` changes that side's unit, `Space u` picks one from the list, and `s` swaps them.
+- **Every kind has its own colour**: currency, length, mass, temperature, volume, data, speed, area, time; `H`/`L` steps through them, `Space k` and a letter jumps to one.
+- **The rest at a glance**: the same amount in every other unit, or every pinned currency (`Space p` pins or unpins one); click one to make it the target.
 - **`Enter` saves the conversion** to a list under it (and to the calculator's tape); the panel stays open.
-- **Exchange rates you can trust**: their age is always shown, and turns yellow past two days. They update once a day in the background (not again for an hour if offline), and `Ctrl+R` updates them now.
+- **Exchange rates you can trust**: their age is always shown, and turns yellow past two days. They update once a day in the background (not again for an hour if offline), and `Space r` updates them now.
 
-Both: keyboard first (every action has a key, shown in the footer), `F11` makes it fullscreen, and the panel never freezes: qalc runs in the background.
+Both: keyboard first, with vim's modes and a `Space` leader (the footer shows the keys, `?` all of them), `Space f` (or `F11`) makes it fullscreen, and the panel never freezes: qalc runs in the background.
 
 ## Install
 
@@ -101,27 +101,133 @@ rm -rf ~/.local/share/vyom/plugins/ganit && vyom reload          # uninstall
 
 ## Usage
 
-Open it with `vyom ganit` (or your key), or straight on Convert with `vyom ganit convert`. Type; the footer shows the keys. `Enter` never closes it: it keeps the answer, and `Esc` closes.
+Open it with `vyom ganit` (or your key), or straight on Convert with `vyom ganit convert`. It opens in **insert mode**, so you can type a sum at once; `Enter` runs it and keeps it on the tape, and the panel stays open.
+
+**Keys work like vim.** In insert mode, keys type: only `Enter` (run or save) and `Esc` (to normal mode) do something else. Every other key belongs to **normal mode**:
+- `j`/`k` move and `i` goes back to typing.
+- A count goes first (`5k`, `3l`).
+- `Space` is the leader: after it, a strip shows what comes next (`Space t` tabs, `Space y` copy, `Space m` memory, `Space k` kind…).
+- `?` shows every key of the tab you're on.
+- `Esc` in normal mode closes the panel.
+
+Vyom's own tab keys (`Tab`, `Ctrl+1..9`) don't apply here: use `gt`/`gT` or `Space t c` / `Space t v`.
+
+<!-- KEYS (generated by scripts/keybinds.py from ganit/vim.py) -->
+
+**Insert mode (typing)**
 
 | Key | Action |
 |---|---|
-| `Enter` | Calculate: run the sum and keep its answer on the tape (the panel stays open). Convert: save the conversion |
-| `Ctrl+Enter` | Copy the answer with its expression |
-| `Up / Down` | Calculate: move along the tape. Convert: move between the From and To amounts |
-| `Ctrl+C` | Copy the answer (the picked tape line's), or the converted amount |
-| `Ctrl+M` | Save the answer to memory (`mem` in a sum uses it) |
-| `Ctrl+L` | Clear the tape (press it twice) |
-| `Alt+1..4` | Copy one of the answer's other forms (plain, exact, hex, binary) |
-| `Alt+Up / Alt+Down` | Switch the unit of the side you're typing in (Convert) |
-| `Alt+1..9` | Switch the kind: currency, length, mass, temperature… (Convert) |
-| `Ctrl+S` | Swap From and To (Convert) |
-| `Ctrl+P` | Toggle the target currency's pin (Convert) |
-| `Ctrl+R` | Update the exchange rates now |
-| `Tab` / `Shift+Tab` | Switch between Calculate and Convert |
-| `F11` | Toggle fullscreen |
-| `Esc` | Close the panel |
+| `Enter` | Run the sum and keep it on the tape (Convert: save the conversion); stays in insert mode |
+| `Esc` | Enter normal mode, where every other key works |
 
-Every Vyom panel also has `Up`/`Down` (or `Ctrl+K`/`Ctrl+J`) to move and `Page Up`/`Page Down` to jump; its tabs, its main kinds, switch with `Tab`/`Shift+Tab` (or `Ctrl+H`/`Ctrl+L`), or `Ctrl+1`..`Ctrl+9` for the first to the ninth.
+**Normal mode, both tabs**
+
+| Key | Action |
+|---|---|
+| `i` | Enter insert mode to type (Esc goes back to normal) |
+| `a` | Enter insert mode at the end of the box |
+| `g t` | Switch to the next tab (Calculate, Convert) |
+| `g T` | Switch to the previous tab |
+| `q` | Close the calculator |
+| `?` | Show every key of this tab |
+
+**Normal mode, Calculate**
+
+| Key | Action |
+|---|---|
+| `j` | Move down the tape (a count moves further: 5j; past the end, back to the box) |
+| `k` | Move up the tape (a count moves further: 5k) |
+| `g g` | Jump to the first tape line |
+| `G` | Jump to the last tape line |
+| `Enter` | Run the sum and keep it on the tape (a picked line: put its sum in the box) |
+| `=` | Run the sum and keep it on the tape |
+| `y y` | Copy the answer (the picked line's, else the live one) |
+| `Y` | Copy the sum with its answer (12 + 5 = 17) |
+| `p` | Paste the answer at the end of the box |
+| `P` | Paste the picked line's sum into the box, replacing what's there |
+| `x` | Delete the last character in the box |
+| `D` | Clear the box |
+| `c c` | Clear the box and enter insert mode |
+| `S` | Clear the box and enter insert mode |
+| `d d` | Delete the picked tape line, else the last (u brings it back) |
+| `u` | Undo the last deleted tape line |
+| `m` | Save the answer to memory (mem in a sum uses it) |
+
+**Normal mode, Convert**
+
+| Key | Action |
+|---|---|
+| `j` | Move to the To amount |
+| `k` | Move to the From amount |
+| `h` | Switch this side's unit to the previous one (a count: 3h) |
+| `l` | Switch this side's unit to the next one (a count: 3l) |
+| `H` | Switch to the previous kind (currency, length, mass…) |
+| `L` | Switch to the next kind |
+| `s` | Swap From and To |
+| `Enter` | Save the conversion to the list |
+| `=` | Save the conversion to the list |
+| `y y` | Copy the converted amount |
+| `Y` | Copy the whole conversion (100 USD = 9,392.25 INR) |
+| `x` | Delete the amount's last character |
+| `D` | Clear the amount |
+| `c c` | Clear the amount and enter insert mode |
+| `S` | Clear the amount and enter insert mode |
+| `d d` | Delete the newest saved conversion (u brings it back) |
+| `u` | Undo the last deleted conversion |
+
+**Leader (Space), both tabs**
+
+| Key | Action |
+|---|---|
+| `Space t c` | Switch to Calculate |
+| `Space t v` | Switch to Convert |
+| `Space r` | Update the exchange rates now |
+| `Space f` | Toggle fullscreen |
+| `Space q` | Close the calculator |
+| `Space ?` | Show every key of this tab |
+
+**Leader (Space), Calculate**
+
+| Key | Action |
+|---|---|
+| `Space y y` | Copy the answer |
+| `Space y e` | Copy the sum with its answer |
+| `Space y p` | Copy the answer as a plain number |
+| `Space y x` | Copy the exact answer (fractions, roots) |
+| `Space y h` | Copy the answer in hex |
+| `Space y b` | Copy the answer in binary |
+| `Space m s` | Save the answer to memory |
+| `Space m p` | Paste mem into the box |
+| `Space m c` | Clear the memory |
+| `Space c t` | Clear the whole tape (y confirms) |
+| `Space c b` | Clear the box |
+
+**Leader (Space), Convert**
+
+| Key | Action |
+|---|---|
+| `Space u f` | Pick the From unit (type to filter, Enter picks) |
+| `Space u t` | Pick the To unit (type to filter, Enter picks) |
+| `Space y y` | Copy the converted amount |
+| `Space y f` | Copy the From amount |
+| `Space y l` | Copy the whole conversion |
+| `Space y r` | Copy the rate (1 USD = 93.92 INR) |
+| `Space p` | Toggle the pin on the To currency (pinned ones show below) |
+| `Space s s` | Save the conversion to the list |
+| `Space s d` | Delete the newest saved conversion |
+| `Space s c` | Clear every saved conversion (y confirms) |
+| `Space k c` | Switch to currency |
+| `Space k l` | Switch to length |
+| `Space k m` | Switch to mass |
+| `Space k t` | Switch to temperature |
+| `Space k v` | Switch to volume |
+| `Space k d` | Switch to data |
+| `Space k s` | Switch to speed |
+| `Space k a` | Switch to area |
+| `Space k i` | Switch to time |
+
+<!-- END KEYS -->
 
 ### Configuration
 
@@ -130,13 +236,14 @@ Every Vyom panel also has `Up`/`Down` (or `Ctrl+K`/`Ctrl+J`) to move and `Page U
 | Option | Default | What it does |
 |---|---|---|
 | `home` | `"INR"` | Your currency: Convert starts from USD to it |
-| `currencies` | `["INR", "USD", "EUR", "GBP", "AED", "JPY", "SGD"]` | The pinned currencies, until you pin or unpin one with `Ctrl+P` |
+| `currencies` | `["INR", "USD", "EUR", "GBP", "AED", "JPY", "SGD"]` | The pinned currencies, until you pin or unpin one with `Space p` |
+| `start_mode` | `"insert"` | The mode it opens in: `"insert"` (type at once) or `"normal"` |
 | `grouping` | `"intl"` | Digit grouping: `"intl"` (1,234,567), `"indian"` (12,34,567) or `"none"` |
 
 ## Troubleshooting
 
 - **Nothing opens.** `vyom list` shows every installed tool, and why one is skipped (a missing requirement, or a Vyom that's too old).
-- **Currency answers are old, or Convert says it has no rate.** qalc keeps the rates in `~/.local/share/qalculate/`; the rate line in Convert shows their age. `Ctrl+R` updates them (it needs the network); the footer says whether it worked.
+- **Currency answers are old, or Convert says it has no rate.** qalc keeps the rates in `~/.local/share/qalculate/`; the rate line in Convert shows their age. `Space r` (normal mode) updates them (it needs the network); the footer says whether it worked.
 - **It opened, then something failed.** Look for a `Traceback` in the daemon's log, `journalctl --user -u vyom -u vyom-daemon -b` (without systemd: `~/.local/state/vyom/daemon.log`), and [open an issue](https://github.com/Theyashsawarkar/ganit/issues/new/choose) with it.
 - **No blur or rounded corners.** That's the compositor: on SwayFX, add `layer_effects "vyom" { blur enable; corner_radius 20; shadows enable }`.
 

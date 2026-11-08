@@ -7,7 +7,10 @@ answer says how qalc read the input, and the preview pane holds its other
 forms (plain, exact, hex, binary). Convert takes an amount once ("100 usd",
 "€50", "2500", "5 ft", "30 c") and shows it in every pinned currency, or
 in the related units. Exchange rates come from qalc; their age is always
-shown, and they refresh once a day (Ctrl+R: now).
+shown, and they refresh once a day (Space r: now).
+
+Keys are vim's (ganit/vim.py): INSERT types, NORMAL runs every key, Space
+is the leader, and ? shows them all.
 """
 import os
 import re
@@ -19,21 +22,88 @@ from gi.repository import GLib, Gtk, Pango
 from vyom import Plugin as Base
 from vyom import ui, util
 
-# keybind: Vyom/calculator | Enter | Run the sum and keep its answer on the tape (the panel stays open; Esc closes)
-# keybind: Vyom/calculator | Ctrl+Enter | Copy the answer with its expression
-# keybind: Vyom/calculator | Up / Down | Move along the tape (Enter with an empty box puts that line back in it)
-# keybind: Vyom/calculator | Ctrl+C | Copy the answer (the picked tape line's, else the live one)
-# keybind: Vyom/calculator | Ctrl+M | Save the answer to memory (mem in a sum uses it)
-# keybind: Vyom/calculator | Ctrl+L | Clear the tape (press it twice)
-# keybind: Vyom/calculator | Alt+1..4 | Copy one of the answer's other forms (plain, exact, hex, binary)
-# keybind: Vyom/calculator | Ctrl+R | Update the exchange rates now
-# keybind: Vyom/converter | Enter | Save the conversion to the list (the panel stays open)
-# keybind: Vyom/converter | Up / Down | Move between the From and To amounts
-# keybind: Vyom/converter | Alt+Up / Alt+Down | Switch the unit of the side you're typing in
-# keybind: Vyom/converter | Alt+1..9 | Switch the kind (currency, length, mass, temperature…)
-# keybind: Vyom/converter | Ctrl+S | Swap From and To
-# keybind: Vyom/converter | Ctrl+C | Copy the converted amount
-# keybind: Vyom/converter | Ctrl+P | Toggle the target currency's pin
+from . import vim
+
+# KEYBINDS (generated from ganit/vim.py by scripts/keybinds.py; don't edit by hand)
+# keybind: Vyom/ganit insert | Enter | Run the sum and keep it on the tape (Convert: save the conversion); stays in insert mode
+# keybind: Vyom/ganit insert | Esc | Enter normal mode, where every other key works
+# keybind: Vyom/ganit normal | i | Enter insert mode to type (Esc goes back to normal)
+# keybind: Vyom/ganit normal | a | Enter insert mode at the end of the box
+# keybind: Vyom/ganit normal | g t | Switch to the next tab (Calculate, Convert)
+# keybind: Vyom/ganit normal | g T | Switch to the previous tab
+# keybind: Vyom/ganit normal | q | Close the calculator
+# keybind: Vyom/ganit normal | ? | Show every key of this tab
+# keybind: Vyom/ganit calculator | j | Move down the tape (a count moves further: 5j; past the end, back to the box)
+# keybind: Vyom/ganit calculator | k | Move up the tape (a count moves further: 5k)
+# keybind: Vyom/ganit calculator | g g | Jump to the first tape line
+# keybind: Vyom/ganit calculator | G | Jump to the last tape line
+# keybind: Vyom/ganit calculator | Enter | Run the sum and keep it on the tape (a picked line: put its sum in the box)
+# keybind: Vyom/ganit calculator | = | Run the sum and keep it on the tape
+# keybind: Vyom/ganit calculator | y y | Copy the answer (the picked line's, else the live one)
+# keybind: Vyom/ganit calculator | Y | Copy the sum with its answer (12 + 5 = 17)
+# keybind: Vyom/ganit calculator | p | Paste the answer at the end of the box
+# keybind: Vyom/ganit calculator | P | Paste the picked line's sum into the box, replacing what's there
+# keybind: Vyom/ganit calculator | x | Delete the last character in the box
+# keybind: Vyom/ganit calculator | D | Clear the box
+# keybind: Vyom/ganit calculator | c c | Clear the box and enter insert mode
+# keybind: Vyom/ganit calculator | S | Clear the box and enter insert mode
+# keybind: Vyom/ganit calculator | d d | Delete the picked tape line, else the last (u brings it back)
+# keybind: Vyom/ganit calculator | u | Undo the last deleted tape line
+# keybind: Vyom/ganit calculator | m | Save the answer to memory (mem in a sum uses it)
+# keybind: Vyom/ganit converter | j | Move to the To amount
+# keybind: Vyom/ganit converter | k | Move to the From amount
+# keybind: Vyom/ganit converter | h | Switch this side's unit to the previous one (a count: 3h)
+# keybind: Vyom/ganit converter | l | Switch this side's unit to the next one (a count: 3l)
+# keybind: Vyom/ganit converter | H | Switch to the previous kind (currency, length, mass…)
+# keybind: Vyom/ganit converter | L | Switch to the next kind
+# keybind: Vyom/ganit converter | s | Swap From and To
+# keybind: Vyom/ganit converter | Enter | Save the conversion to the list
+# keybind: Vyom/ganit converter | = | Save the conversion to the list
+# keybind: Vyom/ganit converter | y y | Copy the converted amount
+# keybind: Vyom/ganit converter | Y | Copy the whole conversion (100 USD = 9,392.25 INR)
+# keybind: Vyom/ganit converter | x | Delete the amount's last character
+# keybind: Vyom/ganit converter | D | Clear the amount
+# keybind: Vyom/ganit converter | c c | Clear the amount and enter insert mode
+# keybind: Vyom/ganit converter | S | Clear the amount and enter insert mode
+# keybind: Vyom/ganit converter | d d | Delete the newest saved conversion (u brings it back)
+# keybind: Vyom/ganit converter | u | Undo the last deleted conversion
+# keybind: Vyom/ganit leader | Space t c | Switch to Calculate
+# keybind: Vyom/ganit leader | Space t v | Switch to Convert
+# keybind: Vyom/ganit leader | Space r | Update the exchange rates now
+# keybind: Vyom/ganit leader | Space f | Toggle fullscreen
+# keybind: Vyom/ganit leader | Space q | Close the calculator
+# keybind: Vyom/ganit leader | Space ? | Show every key of this tab
+# keybind: Vyom/ganit calculator leader | Space y y | Copy the answer
+# keybind: Vyom/ganit calculator leader | Space y e | Copy the sum with its answer
+# keybind: Vyom/ganit calculator leader | Space y p | Copy the answer as a plain number
+# keybind: Vyom/ganit calculator leader | Space y x | Copy the exact answer (fractions, roots)
+# keybind: Vyom/ganit calculator leader | Space y h | Copy the answer in hex
+# keybind: Vyom/ganit calculator leader | Space y b | Copy the answer in binary
+# keybind: Vyom/ganit calculator leader | Space m s | Save the answer to memory
+# keybind: Vyom/ganit calculator leader | Space m p | Paste mem into the box
+# keybind: Vyom/ganit calculator leader | Space m c | Clear the memory
+# keybind: Vyom/ganit calculator leader | Space c t | Clear the whole tape (y confirms)
+# keybind: Vyom/ganit calculator leader | Space c b | Clear the box
+# keybind: Vyom/ganit converter leader | Space u f | Pick the From unit (type to filter, Enter picks)
+# keybind: Vyom/ganit converter leader | Space u t | Pick the To unit (type to filter, Enter picks)
+# keybind: Vyom/ganit converter leader | Space y y | Copy the converted amount
+# keybind: Vyom/ganit converter leader | Space y f | Copy the From amount
+# keybind: Vyom/ganit converter leader | Space y l | Copy the whole conversion
+# keybind: Vyom/ganit converter leader | Space y r | Copy the rate (1 USD = 93.92 INR)
+# keybind: Vyom/ganit converter leader | Space p | Toggle the pin on the To currency (pinned ones show below)
+# keybind: Vyom/ganit converter leader | Space s s | Save the conversion to the list
+# keybind: Vyom/ganit converter leader | Space s d | Delete the newest saved conversion
+# keybind: Vyom/ganit converter leader | Space s c | Clear every saved conversion (y confirms)
+# keybind: Vyom/ganit converter leader | Space k c | Switch to currency
+# keybind: Vyom/ganit converter leader | Space k l | Switch to length
+# keybind: Vyom/ganit converter leader | Space k m | Switch to mass
+# keybind: Vyom/ganit converter leader | Space k t | Switch to temperature
+# keybind: Vyom/ganit converter leader | Space k v | Switch to volume
+# keybind: Vyom/ganit converter leader | Space k d | Switch to data
+# keybind: Vyom/ganit converter leader | Space k s | Switch to speed
+# keybind: Vyom/ganit converter leader | Space k a | Switch to area
+# keybind: Vyom/ganit converter leader | Space k i | Switch to time
+# END KEYBINDS
 
 STATE = "ganit-history"
 ICON, ICON_HIST, ICON_TRY, ICON_UNIT, ICON_CASH, ICON_WARN = (
@@ -342,7 +412,7 @@ def section_label(text):
 # The calculator and the converter are cards: they stay open until Esc.
 # Enter calculates (or saves a conversion) and keeps going, like the real thing.
 
-KINDS = ["currency"] + list(UNITS)          # the converter's kinds, Alt+1..9
+KINDS = ["currency"] + list(UNITS)          # the converter's kinds (H / L, Space k…)
 KIND_COLOR = {"currency": "peach", "length": "teal", "mass": "green", "temperature": "red", "volume": "sky",
               "data": "blue", "speed": "yellow", "area": "lavender", "time": "pink"}
 KIND_ICON = {"currency": "\U000f0114", "length": "\U000f046d", "mass": "\U000f05a1", "temperature": "",
@@ -421,10 +491,24 @@ class Plugin(Base):
         self.cgen = 0
         self.ctimer = None
         self.setting = False
+        # vim
+        self.start_mode = "normal" if self.conf.get("start_mode") == "normal" else "insert"
+        self.mode = self.start_mode
+        self.pending = ""            # keys of a sequence so far (g, y, Space t…)
+        self.count = ""              # a count typed before a key (5j)
+        self.confirm = None          # (question, action) waiting for y
+        self.helping = False         # ? shows every key
+        self.picking = None          # "from" / "to": the unit picker (Space u f / t) is open
+        self.pick_query, self.pick_i = "", 0
+        self.deleted = []            # tape lines deleted with dd: (index in history, item)
+        self.deleted_saved = []      # conversions deleted with dd
 
     # ------------------------------------------------------------- opening
     def opened(self, args):
         super().opened(args)
+        self.mode = self.start_mode
+        self.pending, self.count, self.confirm, self.helping = "", "", None, False
+        self.picking = None
         if args and args[0] in ("convert", "conv"):
             self.tab = "convert"
         elif args:
@@ -443,23 +527,30 @@ class Plugin(Base):
             self.focus_soon()
 
     def build_card(self):
+        self.fresh = True   # a new card: the first focus may select the amount
         card = self.calc_card() if self.tab == "calc" else self.convert_card()
         if self.panel:   # the panel's height (minus its tab bar): it never grows with what's in it
             card.set_size_request(-1, max(360, self.panel.sizes()[1] - 56))
+        over = Gtk.Overlay()
+        over.set_child(card)
+        over.add_overlay(self.which)
+        card = over
         self.focus_soon()
         return card
 
     def focus_soon(self):
         def go():
+            self.apply_mode()
             w = self.entry if self.tab == "calc" else (self.to_entry if self.editing == "to" else self.from_entry)
             if w is not None and w.get_root() is not None:
                 w.grab_focus()
-                if self.tab == "convert":
+                if self.tab == "convert" and self.mode == "insert" and self.fresh:
                     w.select_region(0, -1)   # typing replaces the amount
                 else:
                     w.set_position(-1)
             return False
         GLib.timeout_add(30, go)
+        GLib.timeout_add(35, lambda: (setattr(self, "fresh", False), False)[1])
 
     def update_rates(self):
         if self.updating:
@@ -485,18 +576,157 @@ class Plugin(Base):
                 st.remove_css_class(c)
             st.add_css_class("g-bad" if bad else "g-ok")
 
-    def footer(self, pairs):
+    def footer(self, _pairs=None):
+        """The which-key strip (shown after a prefix, or ?) over the footer:
+        the mode, keys typed so far, this mode's keys, the status line."""
+        outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.which = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        self.which.add_css_class("g-which")
+        self.which.set_visible(False)
+        # (build_card floats it over the card, just above this footer)
+        self.which.set_valign(Gtk.Align.END)
+        self.which.set_margin_bottom(46)
         foot = Gtk.Box(spacing=14)
         foot.add_css_class("g-foot")
-        mode = lbl("CALC" if self.tab == "calc" else "CONVERT", "g-mode")
-        foot.append(mode)
-        for k, w in pairs:
-            foot.append(hint(k, w))
+        self.mode_pill = lbl("", "g-vmode")
+        foot.append(self.mode_pill)
+        self.pending_label = lbl("", "g-pending")
+        foot.append(self.pending_label)
+        self.hint_box = Gtk.Box(spacing=14)
+        foot.append(self.hint_box)
         self.status = lbl("", "g-status", hexpand=True, xalign=1, ellipsize=Pango.EllipsizeMode.END)
         foot.append(self.status)
-        foot.append(hint("F11", "fullscreen"))
-        foot.append(hint("Esc", "close"))
-        return foot
+        self.close_hint = hint("Esc", "close")
+        foot.append(self.close_hint)
+        outer.append(foot)
+        return outer
+
+    MODE_HINTS = {  # noqa: RUF012
+        "insert": [("Enter", "{run}"), ("Esc", "normal mode")],
+        "calc": [("j/k", "tape"), ("i", "type"), ("yy", "copy"), ("p", "paste"), ("dd", "delete"),
+                 ("Space", "leader"), ("?", "all keys")],
+        "convert": [("j/k", "from / to"), ("h/l", "unit"), ("H/L", "kind"), ("s", "swap"), ("Enter", "save"),
+                    ("Space", "leader"), ("?", "all keys")],
+    }
+
+    def click_types(self, entry):
+        """Clicking a box is a way into INSERT, as i is."""
+        click = Gtk.GestureClick()
+        click.connect("pressed", lambda *_: self.mode == "normal" and GLib.idle_add(
+            lambda: (self.set_mode("insert", end=False), False)[1]))
+        entry.add_controller(click)
+
+    def apply_mode(self):
+        """Shows the mode everywhere: the pill, the keys, the boxes (NORMAL
+        boxes don't take typing)."""
+        normal = self.mode == "normal"
+        pill = getattr(self, "mode_pill", None)
+        if pill is None or pill.get_root() is None:
+            return
+        pill.set_text("NORMAL" if normal else "INSERT")
+        pill.remove_css_class("g-insert" if normal else "g-normal")
+        pill.add_css_class("g-normal" if normal else "g-insert")
+        while (c := self.hint_box.get_first_child()) is not None:
+            self.hint_box.remove(c)
+        keys = self.MODE_HINTS[self.tab if normal else "insert"]
+        for k, w in keys:
+            self.hint_box.append(hint(k, w.format(run="calculate" if self.tab == "calc" else "save")))
+        self.close_hint.set_visible(normal)   # INSERT's Esc is in its keys: back to normal
+        boxes = [self.entry] if self.tab == "calc" else [self.from_entry, self.to_entry]
+        for e in boxes:
+            if e is None:
+                continue
+            e.set_editable(not normal)
+            (e.add_css_class if normal else e.remove_css_class)("g-normal")
+        self.show_pending()
+
+    def set_mode(self, mode, end=True):
+        self.mode = mode
+        self.pending, self.count = "", ""
+        self.apply_mode()
+        if mode == "insert":
+            e = self.entry if self.tab == "calc" else (self.to_entry if self.editing == "to" else self.from_entry)
+            if e is not None:
+                e.grab_focus()
+                if end:
+                    e.set_position(-1)
+
+    def show_pending(self):
+        lab = getattr(self, "pending_label", None)
+        if lab is None or lab.get_root() is None:
+            return
+        typed = self.count + vim.spell(self.pending) if self.pending else self.count
+        lab.set_text(typed)
+        lab.set_visible(bool(typed))
+        self.draw_which()
+
+    def draw_picker(self, box):
+        side = "TO" if self.picking == "to" else "FROM"
+        box.append(lbl(f"PICK THE {side} UNIT  ·  type to filter · ↑↓ move · Enter picks · Esc cancels",
+                       "g-which-title"))
+        box.append(lbl(f"› {self.pick_query}", "g-which-key"))
+        matches = self.pick_matches()
+        if not matches:
+            box.append(lbl("No unit matches", "g-which-what"))
+        i = min(self.pick_i, max(0, len(matches) - 1))
+        start = max(0, min(i - 4, len(matches) - 12))   # a window of 12 around the pick
+        grid = Gtk.Grid(column_spacing=10, row_spacing=2, column_homogeneous=True)
+        for n, (_u, label) in enumerate(matches[start:start + 12]):
+            row = lbl(label, "g-pick", ellipsize=Pango.EllipsizeMode.END, hexpand=True)
+            if start + n == i:
+                row.add_css_class("g-pick-on")
+            grid.attach(row, n // 6, n % 6, 1, 1)
+        box.append(grid)
+        box.set_visible(True)
+
+    def draw_which(self):
+        box = getattr(self, "which", None)
+        if box is None or box.get_root() is None:
+            return
+        while (c := box.get_first_child()) is not None:
+            box.remove(c)
+        km = vim.MAPS[self.tab]
+        if self.picking:
+            return self.draw_picker(box)
+        if self.confirm:
+            box.append(lbl(self.confirm[0], "g-which-ask"))
+            box.append(lbl("y  yes      any other key  no", "g-which-title"))
+            box.set_visible(True)
+            return
+        if self.helping:
+            box.append(lbl(f"EVERY KEY · {'CALCULATE' if self.tab == 'calc' else 'CONVERT'} · NORMAL MODE",
+                           "g-which-title"))
+            items = km.plain_binds() + [(vim.LEADER + t, w) for t, w in km.next_keys(vim.LEADER)]
+            items = [(vim.spell(s), w) for s, w in items]
+            items.append(("Esc", "close this list (any key does)"))
+        elif self.pending.startswith(vim.LEADER) or self.pending in vim.LAYERS:
+            name = vim.LAYERS.get(self.pending, "")
+            box.append(lbl(f"{vim.spell(self.pending).upper()}  ·  {name.upper()}", "g-which-title"))
+            items = [(vim.spell(t), w) for t, w in km.next_keys(self.pending)]
+        else:
+            box.set_visible(False)
+            return
+        # Three columns that never widen the panel: each description is cut
+        # with … past its share (its tooltip has it whole).
+        grid = Gtk.Grid(column_spacing=10, row_spacing=4, column_homogeneous=False)
+        cols = 3
+        rows = (len(items) + cols - 1) // cols
+        for n, (k, w) in enumerate(items):
+            c, r = n // rows, n % rows
+            grid.attach(lbl(k, "g-which-key"), c * 2, r, 1, 1)
+            what = lbl(w, "g-which-what", ellipsize=Pango.EllipsizeMode.END, hexpand=True,
+                       width_chars=10, max_width_chars=10)
+            what.set_tooltip_text(w)
+            grid.attach(what, c * 2 + 1, r, 1, 1)
+        if self.helping:   # the whole list scrolls in a fixed height
+            scroll = Gtk.ScrolledWindow()
+            scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+            scroll.set_min_content_height(min(260, 22 * rows))
+            scroll.set_child(grid)
+            box.append(scroll)
+        else:
+            box.append(grid)
+        box.set_visible(True)
 
     # =========================================================== calculator
     def history(self):
@@ -548,6 +778,7 @@ class Plugin(Base):
         self.entry.add_css_class("g-input")
         self.entry.set_placeholder_text(PLACEHOLDER["calc"])
         self.entry.connect("changed", lambda *_: self.on_input())
+        self.click_types(self.entry)
         inrow.append(self.entry)
         disp.append(inrow)
         left.append(disp)
@@ -556,7 +787,7 @@ class Plugin(Base):
         right = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         right.add_css_class("g-right")
         self.forms_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        right.append(self.panel_card("THIS ANSWER", self.forms_box, note="Alt+1..4 copies"))
+        right.append(self.panel_card("THIS ANSWER", self.forms_box, note="Space y copies"))
         grid = Gtk.Grid(row_spacing=6, column_spacing=6, column_homogeneous=True)
         for i, (k, kind) in enumerate(PAD):
             b = Gtk.Button(label=k, can_focus=False)
@@ -567,11 +798,10 @@ class Plugin(Base):
             grid.attach(b, i % 5, i // 5, 1, 1)
         right.append(self.panel_card("KEYPAD", grid, note="or just type"))
         self.mem_label = lbl("", "g-v")
-        right.append(self.panel_card("MEMORY", self.mem_label, note="Ctrl+M stores"))
+        right.append(self.panel_card("MEMORY", self.mem_label, note="m stores"))
         body.append(right)
         root.append(body)
-        root.append(self.footer([("Enter", "calculate"), ("↑↓", "tape"), ("Ctrl+C", "copy"),
-                                 ("Ctrl+M", "memory"), ("Tab", "convert")]))
+        root.append(self.footer())
         self.draw_tape()
         self.draw_mem()
         self.show_live()
@@ -788,7 +1018,8 @@ class Plugin(Base):
             box.append(lbl("Other forms: exact, hex, binary…", "g-empty"))
             return
         box.append(lbl(display, "g-mid", xalign=0, ellipsize=Pango.EllipsizeMode.END, max_width_chars=22))
-        rows = [(f"Alt+{i}  {k}", v) for i, (k, v) in enumerate(forms, 1)]
+        keys = {"plain": "p", "exact": "x", "hex": "h", "binary": "b"}
+        rows = [(f"Space y {keys[k]}  {k}" if k in keys else k, v) for k, v in forms]
         if rows:
             box.append(kv_rows(rows))
 
@@ -856,59 +1087,6 @@ class Plugin(Base):
         util.copy(text)
         self.say(f"Copied {text}")
 
-    def calc_key(self, name, mods):
-        if name in ("Return", "KP_Enter") and not mods:
-            self.commit()
-            return True
-        if name in ("Return", "KP_Enter") and mods == {"ctrl"}:
-            self.copy_answer(with_expr=True)
-            return True
-        if name in ("Up", "Down") and not mods:
-            n = len(self.tape_items())
-            if not n:
-                return True
-            if name == "Up":
-                self.select_line(n - 1 if self.sel is None else max(0, self.sel - 1))
-            elif self.sel is not None:
-                self.select_line(None if self.sel + 1 >= n else self.sel + 1)
-            return True
-        if mods == {"ctrl"} and name == "c":
-            if self.entry.get_selection_bounds():
-                return False   # copying selected text in the box
-            self.copy_answer()
-            return True
-        if mods == {"ctrl"} and name == "m":
-            if self.sel is not None:
-                h = self.tape_items()[self.sel]
-                self.mem_raw = h.get("raw") or plain(h["ans"])
-            elif self.live and self.live.get("raw"):
-                self.mem_raw = self.live["raw"]
-            elif self.ans_raw:
-                self.mem_raw = self.ans_raw
-            else:
-                return True
-            self.draw_mem()
-            self.say(f"Stored {pretty(self.mem_raw, self.style)} in mem")
-            return True
-        if mods == {"ctrl"} and name == "l":
-            if time.time() - self.clear_armed < 3:
-                util.save_state(STATE, {"items": []})
-                self.sel = None
-                self.draw_tape()
-                self.say("Tape cleared")
-            else:
-                self.clear_armed = time.time()
-                self.say("Press Ctrl+L again to clear the tape", bad=True)
-            return True
-        if mods == {"alt"} and name in "1234" and len(name) == 1:
-            _, _, forms = self.current_forms()
-            i = int(name) - 1
-            if i < len(forms):
-                util.copy(forms[i][1])
-                self.say(f"Copied {forms[i][1]}")
-            return True
-        return False
-
     # ============================================================ converter
     def unit_list(self, kind=None):
         kind = kind or self.kind
@@ -949,7 +1127,7 @@ class Plugin(Base):
             box = Gtk.Box(spacing=6)
             box.append(lbl(KIND_ICON[k], "glyph"))
             box.append(lbl(k.capitalize()))
-            b_.set_tooltip_text(f"{k.capitalize()} (Alt+{i})")
+            b_.set_tooltip_text(f"{k.capitalize()} (Space k {vim.KIND_KEYS[k]})")
             b_.set_child(box)
             b_.add_css_class("g-kind")
             b_.add_css_class(f"c-{KIND_COLOR[k]}")
@@ -963,7 +1141,7 @@ class Plugin(Base):
         self.from_entry, self.from_drop, from_box = self.side("FROM", a, "from")
         swap = Gtk.Button(label="⇄", can_focus=False, valign=Gtk.Align.CENTER)
         swap.add_css_class("g-swap")
-        swap.set_tooltip_text("Swap (Ctrl+S)")
+        swap.set_tooltip_text("Swap (s)")
         swap.connect("clicked", lambda *_: self.swap())
         self.to_entry, self.to_drop, to_box = self.side("TO", b, "to")
         sides.append(from_box)
@@ -997,9 +1175,7 @@ class Plugin(Base):
         low.append(sbox)
         inner.append(low)
         root.append(inner)
-        root.append(self.footer([("Enter", "save"), ("↑↓", "from / to"), ("Ctrl+S", "swap"),
-                                 ("Alt+1..9", "kind"), ("Ctrl+C", "copy")]
-                                + ([("Ctrl+P", "pin")] if self.kind == "currency" else [])))
+        root.append(self.footer())
         self.setting = True
         self.from_entry.set_text(self.amount)
         self.setting = False
@@ -1014,6 +1190,7 @@ class Plugin(Base):
         e = Gtk.Entry()
         e.add_css_class("g-amount")
         e.connect("changed", lambda *_: self.on_amount(which))
+        self.click_types(e)
         focus = Gtk.EventControllerFocus()
         focus.connect("enter", lambda *_: self.set_editing(which))
         e.add_controller(focus)
@@ -1039,6 +1216,7 @@ class Plugin(Base):
             return
         self.kind = k
         self.amount = "1" if k == "currency" and not self.amount else self.amount
+        self.editing = "from"   # a new kind converts from its From amount
         if self.panel:
             self.panel.rebuild_card()
 
@@ -1138,7 +1316,7 @@ class Plugin(Base):
             self.rate_label.remove_css_class("g-old")
             if time.time() - rates_time() > STALE:
                 self.rate_label.add_css_class("g-old")
-                txt += " · Ctrl+R updates"
+                txt += " · Space r updates"
         self.rate_label.set_text(txt)
 
     def draw_cells(self):
@@ -1230,56 +1408,366 @@ class Plugin(Base):
         nxt = units[(units.index(cur) + step) % len(units)]
         (self.from_drop if which == "from" else self.to_drop).set_selected(units.index(nxt))
 
-    def convert_key(self, name, mods):
+    # ================================================================ keys
+    # Vyom's own tab keys (Tab, Ctrl+1..9, Ctrl+H/L) don't apply here: tabs are
+    # gt / gT and Space t. Every key but typing is NORMAL mode's.
+    VYOM_TAB_KEYS = ("Tab", "ISO_Left_Tab")
+
+    def key(self, name, row, mods):
+        if getattr(self, "mode_pill", None) is None or self.mode_pill.get_root() is None:
+            return False
+        if name in self.VYOM_TAB_KEYS or ("ctrl" in mods and (name in ("h", "l") or name.isdigit())):
+            return True
+        if name.startswith(("Shift", "Control", "Alt", "Super", "ISO_Level")):
+            return False   # a modifier on its own
+        if self.unit_list_open():
+            return False   # a clicked unit list: its arrows, Enter and Esc
+        if self.picking:
+            return self.pick_key(name, mods)
+        if self.mode == "insert":
+            return self.insert_key(name, mods)
+        return self.normal_key(name, mods)
+
+    def insert_key(self, name, mods):
+        if name == "Escape":
+            self.set_mode("normal")
+            return True
         if name in ("Return", "KP_Enter") and not mods:
-            self.save_conversion()
+            self.v_run(1, "") if self.tab == "calc" else self.v_save(1, "")
             return True
-        if name in ("Up", "Down") and not mods:
-            target = self.from_entry if name == "Up" else self.to_entry
-            self.set_editing("from" if name == "Up" else "to")
-            target.grab_focus()
-            target.select_region(0, -1)
+        # Up / Down / F11 are NORMAL mode's (j / k, Space f); the rest is
+        # typing and the box's own editing (Ctrl+V, Ctrl+A…).
+        return name in ("Up", "Down", "F11", "Page_Up", "Page_Down")
+
+    def normal_key(self, name, mods):
+        if name == "F11" and not mods:
+            return False    # Vyom's fullscreen, like Space f
+        if self.helping:
+            self.helping = False
+            self.draw_which()
             return True
-        if name in ("Up", "Down") and mods == {"alt"}:
-            self.cycle_unit(-1 if name == "Up" else 1)
+        if self.confirm:
+            _, action = self.confirm
+            self.confirm = None
+            self.draw_which()
+            if name == "y" and not mods:
+                action()
+            else:
+                self.say("Kept")
             return True
-        if mods == {"alt"} and len(name) == 1 and name.isdigit() and name != "0":
-            i = int(name) - 1
-            if i < len(KINDS):
-                self.set_kind(KINDS[i])
-            return True
-        if mods == {"ctrl"} and name == "s":
-            self.swap()
-            return True
-        if mods == {"ctrl"} and name == "c":
-            focus = self.to_entry if self.editing == "to" else self.from_entry
-            if focus.get_selection_bounds():
-                return False
-            _, b = self.pair()
-            v = self.result.get(b)
-            if v is None:
+        tok = vim.token(name, mods)
+        if name == "Escape":
+            if self.pending or self.count:
+                self.pending, self.count = "", ""
+                self.show_pending()
                 return True
-            text = self.show_value(v, b)
-            util.copy(text)
-            self.say(f"Copied {text}")
+            if self.tab == "calc" and self.sel is not None:
+                self.select_line(None)
+                return True
+            return False    # Vyom closes the panel
+        if tok is None:
+            return True     # no chords in NORMAL mode
+        if not self.pending and tok.isdigit() and (tok != "0" or self.count):
+            self.count += tok
+            self.show_pending()
             return True
-        if mods == {"ctrl"} and name == "p" and self.kind == "currency":
-            _, b = self.pair()
-            pins = self.pinned()
-            pins = [c for c in pins if c != b] if b in pins else pins + [b]
-            util.save_state("ganit-pinned", {"codes": pins})
-            self.say(f"{'Pinned' if b in pins else 'Unpinned'} {b}")
-            self.convert_now()
+        km = vim.MAPS[self.tab]
+        seq = self.pending + tok
+        exact, longer = km.lookup(seq)
+        if longer:
+            self.pending = seq
+            self.show_pending()
             return True
+        count = int(self.count or 1)
+        self.pending, self.count = "", ""
+        self.show_pending()
+        if exact is None:
+            if seq == tok and len(tok) == 1 and tok not in " ":
+                self.say(f"{tok}: not a NORMAL-mode key · i types · ? lists the keys", bad=True)
+            else:
+                self.say(f"{vim.spell(seq)}: no such key · ? lists them", bad=True)
+            return True
+        action, _ = exact
+        verb, _, arg = action.partition(":")
+        getattr(self, f"v_{verb}")(count, arg)
+        return True
+
+    # ---- actions both tabs share
+    def v_insert(self, _n, _arg):
+        self.set_mode("insert")
+
+    def v_tab(self, _n, arg):
+        keys = [k for k, _ in self.tabs]
+        if arg in ("+1", "-1"):
+            arg = keys[(keys.index(self.tab) + int(arg)) % len(keys)]
+        if self.panel and arg != self.tab:
+            self.panel.select_tab(arg)
+
+    def v_close(self, _n, _arg):
+        self.vyom.close_all()
+
+    def v_help(self, _n, _arg):
+        self.helping = True
+        self.draw_which()
+
+    def v_rates(self, _n, _arg):
+        self.update_rates()
+
+    def v_fullscreen(self, _n, _arg):
+        if self.panel:
+            self.panel.set_full(not self.panel.full)
+
+    def ask(self, question, action):
+        self.confirm = (question, action)
+        self.draw_which()
+
+    def box(self):
+        return self.entry if self.tab == "calc" else (self.to_entry if self.editing == "to" else self.from_entry)
+
+    def v_backspace(self, n, _arg):
+        e = self.box()
+        e.set_text(e.get_text()[:-n] if n < len(e.get_text()) else "")
+
+    def v_clearbox(self, _n, _arg):
+        self.box().set_text("")
+
+    def v_change(self, _n, _arg):
+        self.box().set_text("")
+        self.set_mode("insert")
+
+    # ---- the calculator
+    def v_tape(self, n, arg):
+        count = len(self.tape_items())
+        if not count:
+            return self.say("The tape is empty", bad=True)
+        if arg == "first":
+            return self.select_line(0)
+        if arg == "last":
+            return self.select_line(count - 1)
+        step = n * (1 if arg == "+1" else -1)
+        if self.sel is None:
+            i = count - n if step < 0 else None
+            return self.select_line(max(0, i)) if i is not None else None
+        i = self.sel + step
+        self.select_line(None if i >= count else max(0, i))
+
+    def v_run(self, _n, _arg):
+        if not self.entry.get_text().strip() and self.sel is not None:
+            self.recall(self.sel)
+            self.select_line(None)
+            return
+        self.commit()
+
+    def v_copy(self, _n, arg):
+        if self.tab == "convert":
+            return self.copy_conversion(arg)
+        self.copy_answer(with_expr=arg == "expr")
+
+    def v_form(self, _n, arg):
+        _, _, forms = self.current_forms()
+        for k, v in forms:
+            if k == arg:
+                util.copy(v)
+                return self.say(f"Copied {v}")
+        self.say(f"This answer has no {arg} form", bad=True)
+
+    def v_put(self, _n, arg):
+        e = self.entry
+        if arg == "expr":
+            if self.sel is None:
+                return self.say("Pick a tape line first (j / k)", bad=True)
+            e.set_text(self.tape_items()[self.sel]["expr"])
+        else:
+            _, display, _ = self.current_forms()
+            if not display:
+                return self.say("No answer yet", bad=True)
+            e.set_text(e.get_text() + plain(display))
+        e.set_position(-1)
+
+    def v_store(self, _n, _arg):
+        if self.sel is not None:
+            h = self.tape_items()[self.sel]
+            self.mem_raw = h.get("raw") or plain(h["ans"])
+        elif self.live and self.live.get("raw"):
+            self.mem_raw = self.live["raw"]
+        elif self.ans_raw:
+            self.mem_raw = self.ans_raw
+        else:
+            return self.say("No answer to save yet", bad=True)
+        self.draw_mem()
+        self.say(f"Saved {pretty(self.mem_raw, self.style)} to mem")
+
+    def v_putmem(self, _n, _arg):
+        if not self.mem_raw:
+            return self.say("The memory is empty (m saves an answer)", bad=True)
+        self.entry.set_text(self.entry.get_text() + "mem")
+        self.entry.set_position(-1)
+
+    def v_clearmem(self, _n, _arg):
+        self.mem_raw = None
+        self.draw_mem()
+        self.say("Memory cleared")
+
+    def v_deleteline(self, _n, _arg):
+        items = self.tape_items()
+        if not items:
+            return self.say("The tape is empty", bad=True)
+        i = self.sel if self.sel is not None else len(items) - 1
+        hist = self.history()
+        hi = len(items) - 1 - i     # the history is newest first
+        self.deleted.append((hi, hist.pop(hi)))
+        util.save_state(STATE, {"items": hist})
+        self.sel = None if not hist else min(i, len(hist) - 1) if self.sel is not None else None
+        self.draw_tape()
+        self.say(f"Deleted {items[i]['expr']} · u brings it back")
+
+    def v_undo(self, _n, _arg):
+        if self.tab == "convert":
+            return self.undo_saved()
+        if not self.deleted:
+            return self.say("Nothing to undo", bad=True)
+        hi, item = self.deleted.pop()
+        hist = self.history()
+        hist.insert(min(hi, len(hist)), item)
+        util.save_state(STATE, {"items": hist[:TAPE_KEEP]})
+        self.draw_tape()
+        self.say(f"Back: {item['expr']}")
+
+    def v_cleartape(self, _n, _arg):
+        n = len(self.tape_items())
+        if not n:
+            return self.say("The tape is empty", bad=True)
+
+        def clear():
+            util.save_state(STATE, {"items": []})
+            self.sel = None
+            self.draw_tape()
+            self.say("Tape cleared")
+        self.ask(f"Clear all {n} tape line{'s' if n != 1 else ''}? This can't be undone.", clear)
+
+    # ---- the converter
+    def v_side(self, _n, which):
+        e = self.to_entry if which == "to" else self.from_entry
+        self.set_editing(which)
+        e.grab_focus()
+        e.set_position(-1)
+
+    def v_unit(self, n, arg):
+        self.cycle_unit(n * int(arg))
+
+    def v_kind(self, n, arg):
+        if arg in KINDS:
+            return self.set_kind(arg)
+        self.set_kind(KINDS[(KINDS.index(self.kind) + n * int(arg)) % len(KINDS)])
+
+    def v_swap(self, _n, _arg):
+        self.swap()
+
+    def v_save(self, _n, _arg):
+        self.save_conversion()
+
+    def v_pickunit(self, _n, which):
+        self.set_editing(which)
+        self.picking, self.pick_query = which, ""
+        a, b = self.pair()
+        units = [u for u, _ in self.unit_list()]
+        cur = a if which == "from" else b
+        self.pick_i = units.index(cur) if cur in units else 0
+        self.draw_which()
+
+    def pick_matches(self):
+        q = self.pick_query.lower()
+        return [(u, label) for u, label in self.unit_list() if q in label.lower()]
+
+    def pick_key(self, name, mods):
+        """The unit picker: type to filter, Up / Down (Ctrl+J / K) move,
+        Enter picks, Esc cancels."""
+        matches = self.pick_matches()
+        ctrl = mods == {"ctrl"}
+        if name == "Escape":
+            self.picking = None
+        elif name in ("Return", "KP_Enter"):
+            if matches:
+                u = matches[min(self.pick_i, len(matches) - 1)][0]
+                units = [x for x, _ in self.unit_list()]
+                (self.to_drop if self.picking == "to" else self.from_drop).set_selected(units.index(u))
+                self.say(f"{'To' if self.picking == 'to' else 'From'}: {u}")
+            self.picking = None
+        elif name == "Down" or (ctrl and name in ("j", "n")):
+            self.pick_i = min(self.pick_i + 1, max(0, len(matches) - 1))
+        elif name == "Up" or (ctrl and name in ("k", "p")):
+            self.pick_i = max(0, self.pick_i - 1)
+        elif name == "BackSpace":
+            self.pick_query, self.pick_i = self.pick_query[:-1], 0
+        else:
+            tok = vim.token(name, mods)
+            if tok and len(tok) == 1:
+                self.pick_query += tok
+                self.pick_i = 0
+        self.draw_which()
+        return True
+
+    def unit_list_open(self):
+        """Is a unit list (Space u f / t, or a click) open?"""
+        for drop in (getattr(self, "from_drop", None), getattr(self, "to_drop", None)):
+            c = drop.get_first_child() if drop is not None and drop.get_root() is not None else None
+            while c is not None:
+                if isinstance(c, Gtk.Popover) and c.get_visible():
+                    return True
+                c = c.get_next_sibling()
         return False
 
-    # ================================================================ keys
-    def key(self, name, row, mods):
-        if name in ("r", "R") and mods == {"ctrl"}:
-            self.update_rates()
-            return True
-        if self.tab == "calc" and getattr(self, "entry", None) is not None:
-            return self.calc_key(name, mods)
-        if self.tab == "convert" and getattr(self, "from_entry", None) is not None:
-            return self.convert_key(name, mods)
-        return False
+    def copy_conversion(self, what):
+        a, b = self.pair()
+        va, vb = self.result.get(a), self.result.get(b)
+        if va is None or vb is None:
+            return self.say("Type an amount first", bad=True)
+        if what == "from":
+            text = self.show_value(va, a)
+        elif what == "line":
+            text = f"{self.show_value(va, a)} = {self.show_value(vb, b)}"
+        elif what == "rate":
+            text = f"1 {a} = {rate_text(str(vb / va))} {b}" if va else ""
+        else:
+            text = self.show_value(vb, b)
+        util.copy(text)
+        self.say(f"Copied {text}")
+
+    def v_pin(self, _n, _arg):
+        if self.kind != "currency":
+            return self.say("Only currencies are pinned", bad=True)
+        _, b = self.pair()
+        pins = self.pinned()
+        pins = [c for c in pins if c != b] if b in pins else pins + [b]
+        util.save_state("ganit-pinned", {"codes": pins})
+        self.say(f"{'Pinned' if b in pins else 'Unpinned'} {b}")
+        self.convert_now()
+
+    def v_deletesaved(self, _n, _arg):
+        items = self.saved()
+        if not items:
+            return self.say("Nothing saved yet", bad=True)
+        self.deleted_saved.append(items.pop(0))
+        util.save_state(CONV_STATE, {"items": items})
+        self.draw_saved()
+        it = self.deleted_saved[-1]
+        self.say(f"Deleted {it['a']} = {it['b']} · u brings it back")
+
+    def undo_saved(self):
+        if not self.deleted_saved:
+            return self.say("Nothing to undo", bad=True)
+        it = self.deleted_saved.pop()
+        util.save_state(CONV_STATE, {"items": [it] + self.saved()})
+        self.draw_saved()
+        self.say(f"Back: {it['a']} = {it['b']}")
+
+    def v_clearsaved(self, _n, _arg):
+        n = len(self.saved())
+        if not n:
+            return self.say("Nothing saved yet", bad=True)
+
+        def clear():
+            util.save_state(CONV_STATE, {"items": []})
+            self.draw_saved()
+            self.say("Saved conversions cleared")
+        self.ask(f"Clear all {n} saved conversion{'s' if n != 1 else ''}? This can't be undone.", clear)

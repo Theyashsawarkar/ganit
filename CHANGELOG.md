@@ -2,6 +2,26 @@
 
 Newest first. Releases are tags (`vX.Y.Z`).
 
+## v0.4.0 -- 2026-11-08
+
+- **Vim modes.** It opens in INSERT, where keys type: `Enter` runs the sum (or saves the
+  conversion) and stays there, and `Esc` goes to NORMAL. Every other key is NORMAL mode's:
+  - `j`/`k` (with a count: `5k`), `gg`/`G`, `yy`/`Y`, `p`/`P`, `x`, `D`, `cc`/`S`, `dd`/`u`
+    (delete a tape line or a saved conversion, and undo it), `m` (memory), `gt`/`gT` (tabs),
+    `q` (close), `?` (every key).
+  - The converter adds `h`/`l` (unit), `H`/`L` (kind) and `s` (swap).
+- **Space is the leader**, with layers: `Space t` tabs, `Space y` copy (answer, sum, plain,
+  exact, hex, binary; From, To, the line, the rate), `Space m` memory, `Space c` clear,
+  `Space k` kind (`Space k t` temperature…), `Space u` unit, `Space s` saved, `Space p` pin,
+  `Space r` rates, `Space f` fullscreen. After a prefix, a strip shows what comes next.
+- **`Space u f` / `Space u t` pick a unit** in a small list: type to filter, Enter picks.
+- **Clearing the tape or the saved list asks first** (`y` confirms).
+- The old chords (Ctrl+M, Ctrl+L, Ctrl+S, Ctrl+P, Ctrl+R, Alt+1..9, Alt+Up/Down) are gone,
+  and Vyom's Tab and Ctrl+1..9 don't switch ganit's tabs (`gt`/`gT`, `Space t`).
+- `start_mode = "normal"` in `[plugin.ganit]` opens it in NORMAL instead.
+- The keymaps are one table (`ganit/vim.py`); `scripts/keybinds.py` writes the keybinding
+  lines and the README's key tables from it, and CI checks them. ADR 0005.
+
 ## v0.3.1 -- 2026-11-08
 
 - No numbers on the tape's lines or on the converter's kind buttons (each kind's tooltip
