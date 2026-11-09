@@ -2,6 +2,23 @@
 
 Newest first. Releases are tags (`vX.Y.Z`).
 
+## v0.5.0 -- 2026-11-09
+
+- **Vyom's vim keys** ([ADR 6](docs/adr/0006-vyom-owns-the-vim-keys.md)). The modes,
+  counts, which-key strip, `?` help and the confirm are Vyom's now (Vyom 0.7), so ganit's
+  keys work like every other Vyom tool's, and `Space Space` opens a palette of every action.
+- **Keys in Vayu's shared letters:**
+  - Tabs are `H` / `L` (`gt` / `gT` and `Tab` still work); the converter's kinds moved to
+    `[` / `]`, and `Space g <letter>` jumps to one (was `Space k`).
+  - `Space u f` fullscreen (was `Space f`), `Space v s` / `v p` / `v c` memory (was
+    `Space m`), `Space d t` / `d b` clear the tape / box (was `Space c`), `Space a a` saves a
+    conversion, `Space d d` / `d a` delete the newest / every saved one (was `Space s`),
+    `Space e f` / `e t` pick a unit (was `Space u`), `Space m p` pins a currency (was `Space p`).
+  - A key that moved says where it went, for this release.
+- **Convert opens in normal mode**, so a stray key changes nothing; Calculate still opens
+  ready to type. `start_mode` sets both.
+- The status line is Vyom's footer's (green when it worked, yellow when it didn't).
+
 ## v0.4.0 -- 2026-11-08
 
 - **Vim modes.** It opens in INSERT, where keys type: `Enter` runs the sum (or saves the

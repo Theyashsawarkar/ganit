@@ -48,14 +48,6 @@
 .plugin-ganit button.g-pad-clear { color: @red; }
 .plugin-ganit button.g-pad-eq { background: @peach; color: @crust; border-color: @peach; }
 
-/* ---- footer ---- */
-.plugin-ganit .g-foot { padding: 9px 16px; border-top: 1px solid alpha(white, 0.06); }
-.plugin-ganit .g-mode { font-family: "JetBrainsMono Nerd Font"; font-size: 11px; font-weight: 700;
-  color: @crust; background: @peach; border-radius: 7px; padding: 1px 9px; }
-.plugin-ganit .g-status { font-size: 12px; }
-.plugin-ganit .g-status.g-ok { color: @green; }
-.plugin-ganit .g-status.g-bad { color: @yellow; }
-
 /* ---- converter ---- */
 .plugin-ganit button.g-kind { padding: 4px 11px; border-radius: 11px; background: alpha(white, 0.03);
   border: 1px solid alpha(white, 0.07); box-shadow: none; color: @subtext0; font-weight: 600; font-size: 12.5px; }
@@ -94,23 +86,7 @@
 .plugin-ganit .g-cell-k { font-size: 11.5px; color: @overlay1; }
 .plugin-ganit .g-saved { padding: 4px 2px; border-bottom: 1px dashed alpha(white, 0.06); }
 
-/* ---- vim modes: the pill, keys typed so far, the which-key strip ---- */
-.plugin-ganit .g-vmode { font-family: "JetBrainsMono Nerd Font"; font-size: 11px; font-weight: 800;
-  color: @crust; border-radius: 7px; padding: 1px 9px; }
-.plugin-ganit .g-vmode.g-normal { background: @accent; }
-.plugin-ganit .g-vmode.g-insert { background: @green; }
-.plugin-ganit .g-pending { font-family: "JetBrainsMono Nerd Font"; font-size: 12px; font-weight: 700;
-  color: @peach; }
-.plugin-ganit entry.g-normal, .plugin-ganit .g-input.g-normal { caret-color: transparent; }
-.plugin-ganit entry.g-amount.g-normal { caret-color: transparent; }
-.plugin-ganit .g-which { margin: 0 12px 8px; padding: 10px 14px; border-radius: 14px;
-  background: alpha(@crust, 0.92); border: 1px solid alpha(@accent, 0.55);
-  box-shadow: 0 0 14px alpha(@accent, 0.18); }
-.plugin-ganit .g-which-title { font-size: 11px; font-weight: 700; letter-spacing: 1px; color: @accent; }
-.plugin-ganit .g-which-ask { font-size: 13px; font-weight: 600; color: @red; }
-.plugin-ganit .g-which-key { font-family: "JetBrainsMono Nerd Font"; font-size: 12px; font-weight: 700;
-  color: @peach; min-width: 64px; }
-.plugin-ganit .g-which-what { font-size: 12.5px; color: @subtext1; }
+/* ---- the unit picker (in Vyom's which-key strip) ---- */
 .plugin-ganit .g-pick { font-size: 12.5px; color: @subtext1; padding: 2px 8px; border-radius: 8px; }
 .plugin-ganit .g-pick.g-pick-on { color: @peach; background: alpha(@peach, 0.12);
   box-shadow: inset 0 0 0 1px alpha(@peach, 0.6); }

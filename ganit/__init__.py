@@ -9,8 +9,9 @@ forms (plain, exact, hex, binary). Convert takes an amount once ("100 usd",
 in the related units. Exchange rates come from qalc; their age is always
 shown, and they refresh once a day (Space r: now).
 
-Keys are vim's (ganit/vim.py): INSERT types, NORMAL runs every key, Space
-is the leader, and ? shows them all.
+Keys are vim's: Vyom's modes, counts, leader, which-key strip and help
+(Vyom ADR 0008), and ganit's own keys as data in ganit/vim.py. INSERT types,
+NORMAL runs every key, Space is the leader, and ? shows them all.
 """
 import os
 import re
@@ -19,90 +20,84 @@ from concurrent.futures import ThreadPoolExecutor
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 
 from gi.repository import GLib, Gtk, Pango
+from vyom import Hint, ui, util
 from vyom import Plugin as Base
-from vyom import ui, util
+from vyom.keys import token
 
 from . import vim
 
 # KEYBINDS (generated from ganit/vim.py by scripts/keybinds.py; don't edit by hand)
-# keybind: Vyom/ganit insert | Enter | Run the sum and keep it on the tape (Convert: save the conversion); stays in insert mode
-# keybind: Vyom/ganit insert | Esc | Enter normal mode, where every other key works
-# keybind: Vyom/ganit normal | i | Enter insert mode to type (Esc goes back to normal)
-# keybind: Vyom/ganit normal | a | Enter insert mode at the end of the box
-# keybind: Vyom/ganit normal | g t | Switch to the next tab (Calculate, Convert)
-# keybind: Vyom/ganit normal | g T | Switch to the previous tab
-# keybind: Vyom/ganit normal | q | Close the calculator
-# keybind: Vyom/ganit normal | ? | Show every key of this tab
-# keybind: Vyom/ganit calculator | j | Move down the tape (a count moves further: 5j; past the end, back to the box)
-# keybind: Vyom/ganit calculator | k | Move up the tape (a count moves further: 5k)
-# keybind: Vyom/ganit calculator | g g | Jump to the first tape line
-# keybind: Vyom/ganit calculator | G | Jump to the last tape line
-# keybind: Vyom/ganit calculator | Enter | Run the sum and keep it on the tape (a picked line: put its sum in the box)
-# keybind: Vyom/ganit calculator | = | Run the sum and keep it on the tape
-# keybind: Vyom/ganit calculator | y y | Copy the answer (the picked line's, else the live one)
-# keybind: Vyom/ganit calculator | Y | Copy the sum with its answer (12 + 5 = 17)
-# keybind: Vyom/ganit calculator | p | Paste the answer at the end of the box
-# keybind: Vyom/ganit calculator | P | Paste the picked line's sum into the box, replacing what's there
-# keybind: Vyom/ganit calculator | x | Delete the last character in the box
-# keybind: Vyom/ganit calculator | D | Clear the box
-# keybind: Vyom/ganit calculator | c c | Clear the box and enter insert mode
-# keybind: Vyom/ganit calculator | S | Clear the box and enter insert mode
-# keybind: Vyom/ganit calculator | d d | Delete the picked tape line, else the last (u brings it back)
-# keybind: Vyom/ganit calculator | u | Undo the last deleted tape line
-# keybind: Vyom/ganit calculator | m | Save the answer to memory (mem in a sum uses it)
-# keybind: Vyom/ganit converter | j | Move to the To amount
-# keybind: Vyom/ganit converter | k | Move to the From amount
-# keybind: Vyom/ganit converter | h | Switch this side's unit to the previous one (a count: 3h)
-# keybind: Vyom/ganit converter | l | Switch this side's unit to the next one (a count: 3l)
-# keybind: Vyom/ganit converter | H | Switch to the previous kind (currency, length, mass…)
-# keybind: Vyom/ganit converter | L | Switch to the next kind
-# keybind: Vyom/ganit converter | s | Swap From and To
-# keybind: Vyom/ganit converter | Enter | Save the conversion to the list
-# keybind: Vyom/ganit converter | = | Save the conversion to the list
-# keybind: Vyom/ganit converter | y y | Copy the converted amount
-# keybind: Vyom/ganit converter | Y | Copy the whole conversion (100 USD = 9,392.25 INR)
-# keybind: Vyom/ganit converter | x | Delete the amount's last character
-# keybind: Vyom/ganit converter | D | Clear the amount
-# keybind: Vyom/ganit converter | c c | Clear the amount and enter insert mode
-# keybind: Vyom/ganit converter | S | Clear the amount and enter insert mode
-# keybind: Vyom/ganit converter | d d | Delete the newest saved conversion (u brings it back)
-# keybind: Vyom/ganit converter | u | Undo the last deleted conversion
-# keybind: Vyom/ganit leader | Space t c | Switch to Calculate
-# keybind: Vyom/ganit leader | Space t v | Switch to Convert
-# keybind: Vyom/ganit leader | Space r | Update the exchange rates now
-# keybind: Vyom/ganit leader | Space f | Toggle fullscreen
-# keybind: Vyom/ganit leader | Space q | Close the calculator
-# keybind: Vyom/ganit leader | Space ? | Show every key of this tab
-# keybind: Vyom/ganit calculator leader | Space y y | Copy the answer
-# keybind: Vyom/ganit calculator leader | Space y e | Copy the sum with its answer
-# keybind: Vyom/ganit calculator leader | Space y p | Copy the answer as a plain number
-# keybind: Vyom/ganit calculator leader | Space y x | Copy the exact answer (fractions, roots)
-# keybind: Vyom/ganit calculator leader | Space y h | Copy the answer in hex
-# keybind: Vyom/ganit calculator leader | Space y b | Copy the answer in binary
-# keybind: Vyom/ganit calculator leader | Space m s | Save the answer to memory
-# keybind: Vyom/ganit calculator leader | Space m p | Paste mem into the box
-# keybind: Vyom/ganit calculator leader | Space m c | Clear the memory
-# keybind: Vyom/ganit calculator leader | Space c t | Clear the whole tape (y confirms)
-# keybind: Vyom/ganit calculator leader | Space c b | Clear the box
-# keybind: Vyom/ganit converter leader | Space u f | Pick the From unit (type to filter, Enter picks)
-# keybind: Vyom/ganit converter leader | Space u t | Pick the To unit (type to filter, Enter picks)
-# keybind: Vyom/ganit converter leader | Space y y | Copy the converted amount
-# keybind: Vyom/ganit converter leader | Space y f | Copy the From amount
-# keybind: Vyom/ganit converter leader | Space y l | Copy the whole conversion
-# keybind: Vyom/ganit converter leader | Space y r | Copy the rate (1 USD = 93.92 INR)
-# keybind: Vyom/ganit converter leader | Space p | Toggle the pin on the To currency (pinned ones show below)
-# keybind: Vyom/ganit converter leader | Space s s | Save the conversion to the list
-# keybind: Vyom/ganit converter leader | Space s d | Delete the newest saved conversion
-# keybind: Vyom/ganit converter leader | Space s c | Clear every saved conversion (y confirms)
-# keybind: Vyom/ganit converter leader | Space k c | Switch to currency
-# keybind: Vyom/ganit converter leader | Space k l | Switch to length
-# keybind: Vyom/ganit converter leader | Space k m | Switch to mass
-# keybind: Vyom/ganit converter leader | Space k t | Switch to temperature
-# keybind: Vyom/ganit converter leader | Space k v | Switch to volume
-# keybind: Vyom/ganit converter leader | Space k d | Switch to data
-# keybind: Vyom/ganit converter leader | Space k s | Switch to speed
-# keybind: Vyom/ganit converter leader | Space k a | Switch to area
-# keybind: Vyom/ganit converter leader | Space k i | Switch to time
+# keybind: Vyom/ganit calculator:insert | Enter | Run the sum and keep it on the tape; stays in insert mode
+# keybind: Vyom/ganit converter:insert | Enter | Save the conversion to the list; stays in insert mode
+# keybind: Vyom/ganit:normal | i | Enter insert mode to type (Esc goes back to normal)
+# keybind: Vyom/ganit:normal | a | Enter insert mode at the end of the box
+# keybind: Vyom/ganit calculator:normal | j | Move down the tape (a count moves further: 5j; past the end, back to the box)
+# keybind: Vyom/ganit calculator:normal | k | Move up the tape (a count moves further: 5k)
+# keybind: Vyom/ganit calculator:normal | g g | Jump to the first tape line
+# keybind: Vyom/ganit calculator:normal | G | Jump to the last tape line
+# keybind: Vyom/ganit calculator:normal | Enter | Run the sum and keep it on the tape (a picked line: put its sum in the box)
+# keybind: Vyom/ganit calculator:normal | = | Run the sum and keep it on the tape
+# keybind: Vyom/ganit calculator:normal | y y | Copy the answer (the picked line's, else the live one)
+# keybind: Vyom/ganit calculator:normal | Y | Copy the sum with its answer (12 + 5 = 17)
+# keybind: Vyom/ganit calculator:normal | p | Paste the answer at the end of the box
+# keybind: Vyom/ganit calculator:normal | P | Paste the picked line's sum into the box, replacing what's there
+# keybind: Vyom/ganit calculator:normal | x | Delete the last character in the box
+# keybind: Vyom/ganit calculator:normal | D | Clear the box
+# keybind: Vyom/ganit calculator:normal | c c | Clear the box and enter insert mode
+# keybind: Vyom/ganit calculator:normal | S | Clear the box and enter insert mode
+# keybind: Vyom/ganit calculator:normal | d d | Delete the picked tape line, else the last (u brings it back)
+# keybind: Vyom/ganit calculator:normal | u | Undo the last deleted tape line
+# keybind: Vyom/ganit calculator:normal | m | Save the answer to memory (mem in a sum uses it)
+# keybind: Vyom/ganit converter:normal | j | Move to the To amount
+# keybind: Vyom/ganit converter:normal | k | Move to the From amount
+# keybind: Vyom/ganit converter:normal | h | Switch this side's unit to the previous one (a count: 3h)
+# keybind: Vyom/ganit converter:normal | l | Switch this side's unit to the next one (a count: 3l)
+# keybind: Vyom/ganit converter:normal | [ | Switch to the previous kind (currency, length, mass…)
+# keybind: Vyom/ganit converter:normal | ] | Switch to the next kind
+# keybind: Vyom/ganit converter:normal | s | Swap From and To
+# keybind: Vyom/ganit converter:normal | Enter | Save the conversion to the list
+# keybind: Vyom/ganit converter:normal | = | Save the conversion to the list
+# keybind: Vyom/ganit converter:normal | y y | Copy the converted amount
+# keybind: Vyom/ganit converter:normal | Y | Copy the whole conversion (100 USD = 9,392.25 INR)
+# keybind: Vyom/ganit converter:normal | x | Delete the amount's last character
+# keybind: Vyom/ganit converter:normal | D | Clear the amount
+# keybind: Vyom/ganit converter:normal | c c | Clear the amount and enter insert mode
+# keybind: Vyom/ganit converter:normal | S | Clear the amount and enter insert mode
+# keybind: Vyom/ganit converter:normal | d d | Delete the newest saved conversion (u brings it back)
+# keybind: Vyom/ganit converter:normal | u | Undo the last deleted conversion
+# keybind: Vyom/ganit leader:normal | Space t c | Switch to Calculate
+# keybind: Vyom/ganit leader:normal | Space t v | Switch to Convert
+# keybind: Vyom/ganit leader:normal | Space r | Update the exchange rates now
+# keybind: Vyom/ganit calculator leader:normal | Space y y | Copy the answer
+# keybind: Vyom/ganit calculator leader:normal | Space y e | Copy the sum with its answer
+# keybind: Vyom/ganit calculator leader:normal | Space y p | Copy the answer as a plain number
+# keybind: Vyom/ganit calculator leader:normal | Space y x | Copy the exact answer (fractions, roots)
+# keybind: Vyom/ganit calculator leader:normal | Space y h | Copy the answer in hex
+# keybind: Vyom/ganit calculator leader:normal | Space y b | Copy the answer in binary
+# keybind: Vyom/ganit calculator leader:normal | Space v s | Save the answer to memory
+# keybind: Vyom/ganit calculator leader:normal | Space v p | Paste mem into the box
+# keybind: Vyom/ganit calculator leader:normal | Space v c | Clear the memory
+# keybind: Vyom/ganit calculator leader:normal | Space d t | Clear the whole tape (y confirms)
+# keybind: Vyom/ganit calculator leader:normal | Space d b | Clear the box
+# keybind: Vyom/ganit converter leader:normal | Space e f | Pick the From unit (type to filter, Enter picks)
+# keybind: Vyom/ganit converter leader:normal | Space e t | Pick the To unit (type to filter, Enter picks)
+# keybind: Vyom/ganit converter leader:normal | Space y y | Copy the converted amount
+# keybind: Vyom/ganit converter leader:normal | Space y f | Copy the From amount
+# keybind: Vyom/ganit converter leader:normal | Space y l | Copy the whole conversion
+# keybind: Vyom/ganit converter leader:normal | Space y r | Copy the rate (1 USD = 93.92 INR)
+# keybind: Vyom/ganit converter leader:normal | Space m p | Toggle the pin on the To currency (pinned ones show below)
+# keybind: Vyom/ganit converter leader:normal | Space a a | Save the conversion to the list
+# keybind: Vyom/ganit converter leader:normal | Space d d | Delete the newest saved conversion
+# keybind: Vyom/ganit converter leader:normal | Space d a | Clear every saved conversion (y confirms)
+# keybind: Vyom/ganit converter leader:normal | Space g c | Switch to currency
+# keybind: Vyom/ganit converter leader:normal | Space g l | Switch to length
+# keybind: Vyom/ganit converter leader:normal | Space g m | Switch to mass
+# keybind: Vyom/ganit converter leader:normal | Space g t | Switch to temperature
+# keybind: Vyom/ganit converter leader:normal | Space g v | Switch to volume
+# keybind: Vyom/ganit converter leader:normal | Space g d | Switch to data
+# keybind: Vyom/ganit converter leader:normal | Space g s | Switch to speed
+# keybind: Vyom/ganit converter leader:normal | Space g a | Switch to area
+# keybind: Vyom/ganit converter leader:normal | Space g i | Switch to time
 # END KEYBINDS
 
 STATE = "ganit-history"
@@ -412,7 +407,7 @@ def section_label(text):
 # The calculator and the converter are cards: they stay open until Esc.
 # Enter calculates (or saves a conversion) and keeps going, like the real thing.
 
-KINDS = ["currency"] + list(UNITS)          # the converter's kinds (H / L, Space k…)
+KINDS = ["currency"] + list(UNITS)          # the converter's kinds ([ / ], Space g…)
 KIND_COLOR = {"currency": "peach", "length": "teal", "mass": "green", "temperature": "red", "volume": "sky",
               "data": "blue", "speed": "yellow", "area": "lavender", "time": "pink"}
 KIND_ICON = {"currency": "\U000f0114", "length": "\U000f046d", "mass": "\U000f05a1", "temperature": "",
@@ -458,15 +453,15 @@ def kv_rows(pairs):
     return g
 
 
-def hint(keys, what):
-    return ui.hint_label(keys, what)
-
-
 class Plugin(Base):
     name, title, icon, color = "ganit", "Calculator", ICON, "peach"
     layout = "card"
     width, height = 900, 520            # the size of every Vyom panel
     tabs = [("calc", "Calculate"), ("convert", "Convert")]  # noqa: RUF012 (Vyom reads the class attribute)
+    modal = True                        # Vyom's vim keys (ADR 0008)
+    start_mode = {"calc": "insert", "convert": "normal"}  # noqa: RUF012 ([plugin.ganit] start_mode overrides)
+    card_cursor = False                 # j / k / h / l are ganit's own
+    key_groups = vim.GROUPS
 
     def __init__(self, vyom, conf):
         super().__init__(vyom, conf)
@@ -491,14 +486,8 @@ class Plugin(Base):
         self.cgen = 0
         self.ctimer = None
         self.setting = False
-        # vim
-        self.start_mode = "normal" if self.conf.get("start_mode") == "normal" else "insert"
-        self.mode = self.start_mode
-        self.pending = ""            # keys of a sequence so far (g, y, Space t…)
-        self.count = ""              # a count typed before a key (5j)
-        self.confirm = None          # (question, action) waiting for y
-        self.helping = False         # ? shows every key
-        self.picking = None          # "from" / "to": the unit picker (Space u f / t) is open
+        # vim (the modes and keys are Vyom's)
+        self.picking = None          # "from" / "to": the unit picker (Space e f / t) is open
         self.pick_query, self.pick_i = "", 0
         self.deleted = []            # tape lines deleted with dd: (index in history, item)
         self.deleted_saved = []      # conversions deleted with dd
@@ -506,8 +495,6 @@ class Plugin(Base):
     # ------------------------------------------------------------- opening
     def opened(self, args):
         super().opened(args)
-        self.mode = self.start_mode
-        self.pending, self.count, self.confirm, self.helping = "", "", None, False
         self.picking = None
         if args and args[0] in ("convert", "conv"):
             self.tab = "convert"
@@ -529,22 +516,19 @@ class Plugin(Base):
     def build_card(self):
         self.fresh = True   # a new card: the first focus may select the amount
         card = self.calc_card() if self.tab == "calc" else self.convert_card()
-        if self.panel:   # the panel's height (minus its tab bar): it never grows with what's in it
-            card.set_size_request(-1, max(360, self.panel.sizes()[1] - 56))
-        over = Gtk.Overlay()
-        over.set_child(card)
-        over.add_overlay(self.which)
-        card = over
+        if self.panel:   # the panel's height (minus its tab bar and footer): it never grows with what's in it
+            card.set_size_request(-1, max(320, self.panel.sizes()[1] - 96))
         self.focus_soon()
         return card
 
     def focus_soon(self):
         def go():
-            self.apply_mode()
+            if self.panel and self.panel.modal:
+                self.panel.modal.apply()
             w = self.entry if self.tab == "calc" else (self.to_entry if self.editing == "to" else self.from_entry)
             if w is not None and w.get_root() is not None:
                 w.grab_focus()
-                if self.tab == "convert" and self.mode == "insert" and self.fresh:
+                if self.tab == "convert" and self.vim_mode() == "insert" and self.fresh:
                     w.select_region(0, -1)   # typing replaces the amount
                 else:
                     w.set_position(-1)
@@ -569,105 +553,43 @@ class Plugin(Base):
         self.background(lambda: util.run(["qalc", "-e", "-s", "color 0", "1"], timeout=30), done)
 
     def say(self, text, bad=False):
-        st = getattr(self, "status", None)
-        if st is not None and st.get_root() is not None:
-            st.set_text(text)
-            for c in ("g-bad", "g-ok"):
-                st.remove_css_class(c)
-            st.add_css_class("g-bad" if bad else "g-ok")
-
-    def footer(self, _pairs=None):
-        """The which-key strip (shown after a prefix, or ?) over the footer:
-        the mode, keys typed so far, this mode's keys, the status line."""
-        outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.which = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-        self.which.add_css_class("g-which")
-        self.which.set_visible(False)
-        # (build_card floats it over the card, just above this footer)
-        self.which.set_valign(Gtk.Align.END)
-        self.which.set_margin_bottom(46)
-        foot = Gtk.Box(spacing=14)
-        foot.add_css_class("g-foot")
-        self.mode_pill = lbl("", "g-vmode")
-        foot.append(self.mode_pill)
-        self.pending_label = lbl("", "g-pending")
-        foot.append(self.pending_label)
-        self.hint_box = Gtk.Box(spacing=14)
-        foot.append(self.hint_box)
-        self.status = lbl("", "g-status", hexpand=True, xalign=1, ellipsize=Pango.EllipsizeMode.END)
-        foot.append(self.status)
-        self.close_hint = hint("Esc", "close")
-        foot.append(self.close_hint)
-        outer.append(foot)
-        return outer
+        self.set_status(text, "bad" if bad else "ok")
 
     MODE_HINTS = {  # noqa: RUF012
-        "insert": [("Enter", "{run}"), ("Esc", "normal mode")],
-        "calc": [("j/k", "tape"), ("i", "type"), ("yy", "copy"), ("p", "paste"), ("dd", "delete"),
-                 ("Space", "leader"), ("?", "all keys")],
-        "convert": [("j/k", "from / to"), ("h/l", "unit"), ("H/L", "kind"), ("s", "swap"), ("Enter", "save"),
-                    ("Space", "leader"), ("?", "all keys")],
+        "calc": [("j/k", "tape"), ("i", "type"), ("yy", "copy"), ("p", "paste"), ("dd", "delete")],
+        "convert": [("j/k", "from / to"), ("h/l", "unit"), ("[ ]", "kind"), ("s", "swap"), ("Enter", "save")],
     }
 
-    def click_types(self, entry):
-        """Clicking a box is a way into INSERT, as i is."""
-        click = Gtk.GestureClick()
-        click.connect("pressed", lambda *_: self.mode == "normal" and GLib.idle_add(
-            lambda: (self.set_mode("insert", end=False), False)[1]))
-        entry.add_controller(click)
-
-    def apply_mode(self):
-        """Shows the mode everywhere: the pill, the keys, the boxes (NORMAL
-        boxes don't take typing)."""
-        normal = self.mode == "normal"
-        pill = getattr(self, "mode_pill", None)
-        if pill is None or pill.get_root() is None:
-            return
-        pill.set_text("NORMAL" if normal else "INSERT")
-        pill.remove_css_class("g-insert" if normal else "g-normal")
-        pill.add_css_class("g-normal" if normal else "g-insert")
-        while (c := self.hint_box.get_first_child()) is not None:
-            self.hint_box.remove(c)
-        keys = self.MODE_HINTS[self.tab if normal else "insert"]
-        for k, w in keys:
-            self.hint_box.append(hint(k, w.format(run="calculate" if self.tab == "calc" else "save")))
-        self.close_hint.set_visible(normal)   # INSERT's Esc is in its keys: back to normal
-        boxes = [self.entry] if self.tab == "calc" else [self.from_entry, self.to_entry]
-        for e in boxes:
-            if e is None:
-                continue
-            e.set_editable(not normal)
-            (e.add_css_class if normal else e.remove_css_class)("g-normal")
-        self.show_pending()
-
-    def set_mode(self, mode, end=True):
-        self.mode = mode
-        self.pending, self.count = "", ""
-        self.apply_mode()
+    def mode_hints(self, mode):
         if mode == "insert":
-            e = self.entry if self.tab == "calc" else (self.to_entry if self.editing == "to" else self.from_entry)
-            if e is not None:
-                e.grab_focus()
-                if end:
-                    e.set_position(-1)
+            return [Hint("Enter", "calculate" if self.tab == "calc" else "save"), Hint("Esc", "normal mode")]
+        return [Hint(k, w) for k, w in self.MODE_HINTS[self.tab]]
 
-    def show_pending(self):
-        lab = getattr(self, "pending_label", None)
-        if lab is None or lab.get_root() is None:
-            return
-        typed = self.count + vim.spell(self.pending) if self.pending else self.count
-        lab.set_text(typed)
-        lab.set_visible(bool(typed))
-        self.draw_which()
+    def editables(self):
+        if self.tab == "calc":
+            return [getattr(self, "entry", None)]
+        return [getattr(self, "from_entry", None), getattr(self, "to_entry", None)]
+
+    def insert_target(self):
+        return self.box()
+
+    def escape(self):
+        if self.tab == "calc" and self.sel is not None:   # Esc unpicks a tape line first
+            self.select_line(None)
+            return True
+        return False
+
+    def keys(self, tab):
+        return vim.keys(tab)
 
     def draw_picker(self, box):
         side = "TO" if self.picking == "to" else "FROM"
         box.append(lbl(f"PICK THE {side} UNIT  ·  type to filter · ↑↓ move · Enter picks · Esc cancels",
-                       "g-which-title"))
-        box.append(lbl(f"› {self.pick_query}", "g-which-key"))
+                       "vk-which-title", xalign=0))
+        box.append(lbl(f"› {self.pick_query}", "vk-which-key", xalign=0))
         matches = self.pick_matches()
         if not matches:
-            box.append(lbl("No unit matches", "g-which-what"))
+            box.append(lbl("No unit matches", "vk-which-what", xalign=0))
         i = min(self.pick_i, max(0, len(matches) - 1))
         start = max(0, min(i - 4, len(matches) - 12))   # a window of 12 around the pick
         grid = Gtk.Grid(column_spacing=10, row_spacing=2, column_homogeneous=True)
@@ -677,56 +599,6 @@ class Plugin(Base):
                 row.add_css_class("g-pick-on")
             grid.attach(row, n // 6, n % 6, 1, 1)
         box.append(grid)
-        box.set_visible(True)
-
-    def draw_which(self):
-        box = getattr(self, "which", None)
-        if box is None or box.get_root() is None:
-            return
-        while (c := box.get_first_child()) is not None:
-            box.remove(c)
-        km = vim.MAPS[self.tab]
-        if self.picking:
-            return self.draw_picker(box)
-        if self.confirm:
-            box.append(lbl(self.confirm[0], "g-which-ask"))
-            box.append(lbl("y  yes      any other key  no", "g-which-title"))
-            box.set_visible(True)
-            return
-        if self.helping:
-            box.append(lbl(f"EVERY KEY · {'CALCULATE' if self.tab == 'calc' else 'CONVERT'} · NORMAL MODE",
-                           "g-which-title"))
-            items = km.plain_binds() + [(vim.LEADER + t, w) for t, w in km.next_keys(vim.LEADER)]
-            items = [(vim.spell(s), w) for s, w in items]
-            items.append(("Esc", "close this list (any key does)"))
-        elif self.pending.startswith(vim.LEADER) or self.pending in vim.LAYERS:
-            name = vim.LAYERS.get(self.pending, "")
-            box.append(lbl(f"{vim.spell(self.pending).upper()}  ·  {name.upper()}", "g-which-title"))
-            items = [(vim.spell(t), w) for t, w in km.next_keys(self.pending)]
-        else:
-            box.set_visible(False)
-            return
-        # Three columns that never widen the panel: each description is cut
-        # with … past its share (its tooltip has it whole).
-        grid = Gtk.Grid(column_spacing=10, row_spacing=4, column_homogeneous=False)
-        cols = 3
-        rows = (len(items) + cols - 1) // cols
-        for n, (k, w) in enumerate(items):
-            c, r = n // rows, n % rows
-            grid.attach(lbl(k, "g-which-key"), c * 2, r, 1, 1)
-            what = lbl(w, "g-which-what", ellipsize=Pango.EllipsizeMode.END, hexpand=True,
-                       width_chars=10, max_width_chars=10)
-            what.set_tooltip_text(w)
-            grid.attach(what, c * 2 + 1, r, 1, 1)
-        if self.helping:   # the whole list scrolls in a fixed height
-            scroll = Gtk.ScrolledWindow()
-            scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-            scroll.set_min_content_height(min(260, 22 * rows))
-            scroll.set_child(grid)
-            box.append(scroll)
-        else:
-            box.append(grid)
-        box.set_visible(True)
 
     # =========================================================== calculator
     def history(self):
@@ -778,7 +650,6 @@ class Plugin(Base):
         self.entry.add_css_class("g-input")
         self.entry.set_placeholder_text(PLACEHOLDER["calc"])
         self.entry.connect("changed", lambda *_: self.on_input())
-        self.click_types(self.entry)
         inrow.append(self.entry)
         disp.append(inrow)
         left.append(disp)
@@ -801,7 +672,6 @@ class Plugin(Base):
         right.append(self.panel_card("MEMORY", self.mem_label, note="m stores"))
         body.append(right)
         root.append(body)
-        root.append(self.footer())
         self.draw_tape()
         self.draw_mem()
         self.show_live()
@@ -1127,7 +997,7 @@ class Plugin(Base):
             box = Gtk.Box(spacing=6)
             box.append(lbl(KIND_ICON[k], "glyph"))
             box.append(lbl(k.capitalize()))
-            b_.set_tooltip_text(f"{k.capitalize()} (Space k {vim.KIND_KEYS[k]})")
+            b_.set_tooltip_text(f"{k.capitalize()} (Space g {vim.KIND_KEYS[k]})")
             b_.set_child(box)
             b_.add_css_class("g-kind")
             b_.add_css_class(f"c-{KIND_COLOR[k]}")
@@ -1175,7 +1045,6 @@ class Plugin(Base):
         low.append(sbox)
         inner.append(low)
         root.append(inner)
-        root.append(self.footer())
         self.setting = True
         self.from_entry.set_text(self.amount)
         self.setting = False
@@ -1190,7 +1059,6 @@ class Plugin(Base):
         e = Gtk.Entry()
         e.add_css_class("g-amount")
         e.connect("changed", lambda *_: self.on_amount(which))
-        self.click_types(e)
         focus = Gtk.EventControllerFocus()
         focus.connect("enter", lambda *_: self.set_editing(which))
         e.add_controller(focus)
@@ -1409,117 +1277,22 @@ class Plugin(Base):
         (self.from_drop if which == "from" else self.to_drop).set_selected(units.index(nxt))
 
     # ================================================================ keys
-    # Vyom's own tab keys (Tab, Ctrl+1..9, Ctrl+H/L) don't apply here: tabs are
-    # gt / gT and Space t. Every key but typing is NORMAL mode's.
-    VYOM_TAB_KEYS = ("Tab", "ISO_Left_Tab")
-
+    # The modes, counts and sequences are Vyom's (keys() above); this is only
+    # the unit picker, which takes every key while it's open.
     def key(self, name, row, mods):
-        if getattr(self, "mode_pill", None) is None or self.mode_pill.get_root() is None:
-            return False
-        if name in self.VYOM_TAB_KEYS or ("ctrl" in mods and (name in ("h", "l") or name.isdigit())):
-            return True
-        if name.startswith(("Shift", "Control", "Alt", "Super", "ISO_Level")):
-            return False   # a modifier on its own
-        if self.unit_list_open():
-            return False   # a clicked unit list: its arrows, Enter and Esc
         if self.picking:
             return self.pick_key(name, mods)
-        if self.mode == "insert":
-            return self.insert_key(name, mods)
-        return self.normal_key(name, mods)
+        return False
 
-    def insert_key(self, name, mods):
-        if name == "Escape":
-            self.set_mode("normal")
-            return True
-        if name in ("Return", "KP_Enter") and not mods:
-            self.v_run(1, "") if self.tab == "calc" else self.v_save(1, "")
-            return True
-        # Up / Down / F11 are NORMAL mode's (j / k, Space f); the rest is
-        # typing and the box's own editing (Ctrl+V, Ctrl+A…).
-        return name in ("Up", "Down", "F11", "Page_Up", "Page_Down")
-
-    def normal_key(self, name, mods):
-        if name == "F11" and not mods:
-            return False    # Vyom's fullscreen, like Space f
-        if self.helping:
-            self.helping = False
-            self.draw_which()
-            return True
-        if self.confirm:
-            _, action = self.confirm
-            self.confirm = None
-            self.draw_which()
-            if name == "y" and not mods:
-                action()
-            else:
-                self.say("Kept")
-            return True
-        tok = vim.token(name, mods)
-        if name == "Escape":
-            if self.pending or self.count:
-                self.pending, self.count = "", ""
-                self.show_pending()
-                return True
-            if self.tab == "calc" and self.sel is not None:
-                self.select_line(None)
-                return True
-            return False    # Vyom closes the panel
-        if tok is None:
-            return True     # no chords in NORMAL mode
-        if not self.pending and tok.isdigit() and (tok != "0" or self.count):
-            self.count += tok
-            self.show_pending()
-            return True
-        km = vim.MAPS[self.tab]
-        seq = self.pending + tok
-        exact, longer = km.lookup(seq)
-        if longer:
-            self.pending = seq
-            self.show_pending()
-            return True
-        count = int(self.count or 1)
-        self.pending, self.count = "", ""
-        self.show_pending()
-        if exact is None:
-            if seq == tok and len(tok) == 1 and tok not in " ":
-                self.say(f"{tok}: not a NORMAL-mode key · i types · ? lists the keys", bad=True)
-            else:
-                self.say(f"{vim.spell(seq)}: no such key · ? lists them", bad=True)
-            return True
-        action, _ = exact
-        verb, _, arg = action.partition(":")
-        getattr(self, f"v_{verb}")(count, arg)
-        return True
+    def keys_to_widget(self):
+        return self.unit_list_open()   # a clicked unit list: its arrows, Enter and Esc
 
     # ---- actions both tabs share
-    def v_insert(self, _n, _arg):
-        self.set_mode("insert")
-
-    def v_tab(self, _n, arg):
-        keys = [k for k, _ in self.tabs]
-        if arg in ("+1", "-1"):
-            arg = keys[(keys.index(self.tab) + int(arg)) % len(keys)]
-        if self.panel and arg != self.tab:
-            self.panel.select_tab(arg)
-
-    def v_close(self, _n, _arg):
-        self.vyom.close_all()
-
-    def v_help(self, _n, _arg):
-        self.helping = True
-        self.draw_which()
-
     def v_rates(self, _n, _arg):
         self.update_rates()
 
-    def v_fullscreen(self, _n, _arg):
-        if self.panel:
-            self.panel.set_full(not self.panel.full)
-
     def ask(self, question, action):
-        self.confirm = (question, action)
-        self.draw_which()
+        self.confirm(question, action)
 
     def box(self):
         return self.entry if self.tab == "calc" else (self.to_entry if self.editing == "to" else self.from_entry)
@@ -1533,7 +1306,7 @@ class Plugin(Base):
 
     def v_change(self, _n, _arg):
         self.box().set_text("")
-        self.set_mode("insert")
+        self.set_vim_mode("insert")
 
     # ---- the calculator
     def v_tape(self, n, arg):
@@ -1673,7 +1446,7 @@ class Plugin(Base):
         units = [u for u, _ in self.unit_list()]
         cur = a if which == "from" else b
         self.pick_i = units.index(cur) if cur in units else 0
-        self.draw_which()
+        self.panel.modal.show_custom(self.draw_picker)
 
     def pick_matches(self):
         q = self.pick_query.lower()
@@ -1700,11 +1473,14 @@ class Plugin(Base):
         elif name == "BackSpace":
             self.pick_query, self.pick_i = self.pick_query[:-1], 0
         else:
-            tok = vim.token(name, mods)
+            tok = token(name, mods)
             if tok and len(tok) == 1:
                 self.pick_query += tok
                 self.pick_i = 0
-        self.draw_which()
+        if self.picking:
+            self.panel.modal.draw()
+        else:
+            self.panel.modal.hide_custom()
         return True
 
     def unit_list_open(self):
