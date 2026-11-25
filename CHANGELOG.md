@@ -2,6 +2,11 @@
 
 Newest first. Releases are tags (`vX.Y.Z`).
 
+## Unreleased
+
+- **Spatial look**: rounder tape, keypad, display and converter cards, borderless glass, no coloured glow (peach stays the calculator's colour).
+- The website has Vayu's Spatial look: graphite glass, a floating navigation bar, near-white for links and the main button, and the tool's own colour only as its signature (the logo's glow, the shloka's line, the release dots). No more all-caps labels.
+
 ## v0.5.0 -- 2026-11-09
 
 - **Vyom's vim keys** ([ADR 6](docs/adr/0006-vyom-owns-the-vim-keys.md)). The modes,
