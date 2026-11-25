@@ -399,7 +399,7 @@ def big(text, unit_split=True):
 
 
 def section_label(text):
-    return ui.label(text.upper(), "section", xalign=0)
+    return ui.label(text, "section", xalign=0)
 
 
 
@@ -698,7 +698,7 @@ class Plugin(Base):
         for i, h in enumerate(items):
             day = day_label(h.get("t"))
             if day != last_day:
-                box.append(lbl(day.upper(), "g-day"))
+                box.append(lbl(day, "g-day"))
                 last_day = day
             line = Gtk.Box(spacing=10)
             line.add_css_class("g-line")

@@ -4,12 +4,12 @@
 .plugin-ganit .g-left { padding: 14px 16px 12px; }
 .plugin-ganit .g-right { padding: 14px 16px 12px; min-width: 300px;
   border-left: 1px solid alpha(white, 0.06); }
-.plugin-ganit .g-head { font-size: 11px; font-weight: 600; color: @overlay1; letter-spacing: 1px; }
+.plugin-ganit .g-head { font-size: 12px; font-weight: 600; color: @subtext0; }
 .plugin-ganit .g-head-note { font-size: 11.5px; color: @overlay0; }
 .plugin-ganit .g-empty { color: @overlay0; font-size: 12.5px; padding: 8px 4px; }
 
 /* ---- the tape ---- */
-.plugin-ganit .g-day { font-size: 11px; font-weight: 600; color: @overlay0; letter-spacing: 0.8px;
+.plugin-ganit .g-day { font-size: 12px; font-weight: 600; color: @overlay1;
   padding: 10px 8px 2px; }
 .plugin-ganit .g-line { padding: 5px 10px; border-radius: 18px; border: 1px solid transparent; }
 .plugin-ganit .g-line:hover { background: alpha(white, 0.05); }
