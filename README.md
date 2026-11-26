@@ -30,7 +30,7 @@
 </p>
 
 <p align="center">
-  <img alt="ganit: calculator panel" src="assets/screenshots/ganit.png" width="100%">
+  <img alt="ganit's Calculate tab: four sums on the tape, sqrt(2) * 100 being typed with its answer in big digits, the keypad and memory on the right" src="assets/screenshots/ganit.webp" width="100%">
 </p>
 
 > *Ganit* (गणित) is Sanskrit for "mathematics": the sums, conversions and currencies, answered as you type.
@@ -61,7 +61,7 @@ ganit is the calculator and converter for [Vyom](https://github.com/Theyashsawar
 
 **Convert** (`vyom ganit convert`, or `L` from Calculate): a two-sided converter.
 
-<p align="center"><img alt="ganit: the Convert tab" src="assets/screenshots/ganit-convert.png" width="100%"></p>
+<p align="center"><img alt="ganit's Convert tab: 100 US dollars in Indian rupees, the rate both ways, the amount in every pinned currency, and the saved conversions" src="assets/screenshots/ganit-convert.webp" width="100%"></p>
 
 - **From and To, side by side**: type in either (`j`/`k` moves between them) and the other follows; `h`/`l` changes that side's unit, `Space e f` / `Space e t` picks one from the list, and `s` swaps them.
 - **Every kind has its own colour**: currency, length, mass, temperature, volume, data, speed, area, time; `[`/`]` steps through them, `Space g` and a letter jumps to one.

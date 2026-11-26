@@ -583,8 +583,8 @@ class Plugin(Base):
         return vim.keys(tab)
 
     def draw_picker(self, box):
-        side = "TO" if self.picking == "to" else "FROM"
-        box.append(lbl(f"PICK THE {side} UNIT  ·  type to filter · ↑↓ move · Enter picks · Esc cancels",
+        side = "to" if self.picking == "to" else "from"
+        box.append(lbl(f"Pick the {side} unit  ·  type to filter · ↑↓ move · Enter picks · Esc cancels",
                        "vk-which-title", xalign=0))
         box.append(lbl(f"› {self.pick_query}", "vk-which-key", xalign=0))
         matches = self.pick_matches()
@@ -621,7 +621,7 @@ class Plugin(Base):
         left = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8, hexpand=True)
         left.add_css_class("g-left")
         head = Gtk.Box()
-        head.append(lbl("TAPE", "g-head", hexpand=True))
+        head.append(lbl("Tape", "g-head", hexpand=True))
         self.tape_count = lbl("", "g-head-note", xalign=1)
         head.append(self.tape_count)
         left.append(head)
@@ -658,7 +658,7 @@ class Plugin(Base):
         right = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         right.add_css_class("g-right")
         self.forms_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        right.append(self.panel_card("THIS ANSWER", self.forms_box, note="Space y copies"))
+        right.append(self.panel_card("This answer", self.forms_box, note="Space y copies"))
         grid = Gtk.Grid(row_spacing=6, column_spacing=6, column_homogeneous=True)
         for i, (k, kind) in enumerate(PAD):
             b = Gtk.Button(label=k, can_focus=False)
@@ -667,9 +667,9 @@ class Plugin(Base):
                 b.add_css_class(f"g-pad-{kind}")
             b.connect("clicked", lambda _b, k=k: self.pad(k))
             grid.attach(b, i % 5, i // 5, 1, 1)
-        right.append(self.panel_card("KEYPAD", grid, note="or just type"))
+        right.append(self.panel_card("Keypad", grid, note="or just type"))
         self.mem_label = lbl("", "g-v")
-        right.append(self.panel_card("MEMORY", self.mem_label, note="m stores"))
+        right.append(self.panel_card("Memory", self.mem_label, note="m stores"))
         body.append(right)
         root.append(body)
         self.draw_tape()
@@ -1008,12 +1008,12 @@ class Plugin(Base):
         inner.append(kinds)
 
         sides = Gtk.Box(spacing=12)
-        self.from_entry, self.from_drop, from_box = self.side("FROM", a, "from")
+        self.from_entry, self.from_drop, from_box = self.side("From", a, "from")
         swap = Gtk.Button(label="⇄", can_focus=False, valign=Gtk.Align.CENTER)
         swap.add_css_class("g-swap")
         swap.set_tooltip_text("Swap (s)")
         swap.connect("clicked", lambda *_: self.swap())
-        self.to_entry, self.to_drop, to_box = self.side("TO", b, "to")
+        self.to_entry, self.to_drop, to_box = self.side("To", b, "to")
         sides.append(from_box)
         sides.append(swap)
         sides.append(to_box)
@@ -1024,7 +1024,7 @@ class Plugin(Base):
         low = Gtk.Box(spacing=12, vexpand=True)
         gridcol = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, hexpand=True)
         head = Gtk.Box()
-        head.append(lbl("IN EVERY " + ("PINNED CURRENCY" if self.kind == "currency" else self.kind.upper()),
+        head.append(lbl("In every " + ("pinned currency" if self.kind == "currency" else self.kind),
                         "g-head", hexpand=True))
         head.append(lbl("click one to convert to it", "g-head-note", xalign=1))
         gridcol.append(head)
@@ -1040,7 +1040,7 @@ class Plugin(Base):
         sscroll = Gtk.ScrolledWindow(vexpand=True)
         sscroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         sscroll.set_child(self.saved_box)
-        sbox = self.panel_card("SAVED", sscroll, note="Enter saves")
+        sbox = self.panel_card("Saved", sscroll, note="Enter saves")
         sbox.set_size_request(250, -1)
         low.append(sbox)
         inner.append(low)
