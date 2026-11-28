@@ -4,6 +4,7 @@ Newest first. Releases are tags (`vX.Y.Z`).
 
 ## Unreleased
 
+- Website: pranali joins the family list in the footer; the site builder passes ruff.
 - New screenshots in the Spatial look, taken with made-up demo data (WebP, sharp on high-density screens).
 - Every label in sentence case, not tracked all caps: the section and day labels, Tape, This answer, Keypad, Memory, From, To, Saved and the unit picker.
 - The website, closer to Vayu's own: the tool's screenshot blurred behind the page, a centred hero with the logo and the verse, the page you're on as the white pill, glass "On this page" and footer panels, releases as cards. No glow behind the logo, no coloured line beside the verse.
